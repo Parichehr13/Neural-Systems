@@ -7,13 +7,33 @@ Simulate a single integrate-and-fire neuron with fixed threshold and analyze:
 1. Time response to a variable input current.
 2. Discharge frequency as a function of constant input current (I-F curve).
 
-### Model 
+### Model
+Membrane dynamics:
+
+tau_m * dV/dt = -(V - E0) + r * I(t)
+
+Discrete update used in code (variable current case, Euler):
+
+```text
+Vinf = E0 + r*I[k]
+V[k+1] = V[k] + (Vinf - V[k]) * dt / tau
+```
+
+Discrete update used in code (constant current trials, exact step):
+
+```text
+Vinf = E0 + r*I
+V[k+1] = (V[k] - Vinf) * exp(-dt/tau) + Vinf
+```
+
+Spike rule:
+- If V[k+1] > Vt, emit a spike and reset V[k+1] = E0.
 
 Used parameters (from the provided code):
-- \(E_0 = V_{reset} = -65\) mV
-- \(V_{th} = -55\) mV
-- \(\tau_m = 30\) ms
-- \(r = 10\) M\(\Omega\)
+- E0 = Vreset = -65 mV
+- Vt = -55 mV
+- tau = 30 ms
+- r = 10 Mohm
 
 ### Results
 Input current \(I(t)\) was chosen as a rectified sinusoid.
@@ -46,33 +66,37 @@ Extend Exercise 1 by making threshold dynamic to model relative refractoriness, 
 ### Model
 Membrane dynamics:
 
-\[
-\tau_m \frac{dV}{dt} = -\left(V - E_0\right) + r I
-\]
+tau_m * dV/dt = -(V - E0) + r * I
 
 Threshold dynamics:
 
-\[
-\tau_t \frac{dV_t}{dt} = -\left(V_t - V_{tL}\right)
-\]
+tau_t * dVt/dt = -(Vt - VtL)
+
+Discrete updates used in code:
+
+```text
+Vinf = E0 + r*I
+V[k+1]  = (V[k]  - Vinf) * exp(-dt/tau)  + Vinf
+Vt[k+1] = (Vt[k] - VtL)  * exp(-dt/taut) + VtL
+```
 
 Spike rule:
-- If \(V \ge V_t\), emit spike, reset \(V \leftarrow E_0\), and set \(V_t \leftarrow V_{tH}\).
+- If V[k+1] > Vt[k+1], emit spike, reset V[k+1] = E0, and set Vt[k+1] = VtH.
 
 Used parameters:
-- \(E_0 = -65\) mV
-- \(V_{tL} = -55\) mV
-- \(V_{tH} = 0\) mV
-- \(\tau_m = 30\) ms
-- \(\tau_t = 10\) ms
-- \(r = 10\) M\(\Omega\)
+- E0 = -65 mV
+- VtL = -55 mV
+- VtH = 0 mV
+- tau = 30 ms
+- taut = 10 ms
+- r = 10 Mohm
 
 ### Results
 Example response for one constant current:
 
 ![Exercise 2 - Single current response](figures/fig_027.png)
 
-Here, the threshold rises after each spike and then decays back to \(V_{tL}\), which temporarily reduces excitability (relative refractory period).
+Here, the threshold rises after each spike and then decays back to VtL, which temporarily reduces excitability (relative refractory period).
 
 Frequency-current curve:
 
