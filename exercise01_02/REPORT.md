@@ -7,15 +7,7 @@ Simulate a single integrate-and-fire neuron with fixed threshold and analyze:
 1. Time response to a variable input current.
 2. Discharge frequency as a function of constant input current (I-F curve).
 
-### Model
-Membrane dynamics:
-
-\[
-\tau_m \frac{dV}{dt} = -\left(V - E_0\right) + r I(t)
-\]
-
-Spike rule:
-- If \(V \ge V_{th}\), emit a spike and reset \(V \leftarrow E_0\).
+### Model 
 
 Used parameters (from the provided code):
 - \(E_0 = V_{reset} = -65\) mV
