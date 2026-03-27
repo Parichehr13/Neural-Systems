@@ -26,5 +26,3 @@ Current-frequency relationship:
 
 ![Exercise 03 - I-F](figures/exercise03_fig_002.png)
 
-## Notes
-- Figures generated automatically by running `exercise03.py` headlessly.
