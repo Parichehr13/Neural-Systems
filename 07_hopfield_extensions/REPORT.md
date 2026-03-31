@@ -59,8 +59,8 @@ Display width is normalized for readability; original figure resolution is uncha
 3. **Fig 30** shows low M/N convergence toward an attractor, with distortion due to interference/spurious components.
 4. **Fig 39** is the final stable state of the sparse-coding test.
 
-## Last Image Interpretation (Fig 39)
-The last image (`exercise09_fig_039.png`) belongs to the sparse-pattern section of the code (Part 3), not to dilution or low M/N.
+## Sparse Pattern Recovery Interpretation
+This result comes from the sparse-pattern experiment in Part 3 of the code.
 
 ### What It Represents
 - White pixels are active neurons (`1`), black pixels are inactive neurons (`0`).
@@ -73,9 +73,9 @@ The last image (`exercise09_fig_039.png`) belongs to the sparse-pattern section 
 - One unstable neuron is flipped at a time: `Y_i = 1 - Y_i`.
 - The loop stops when `L = 0`, where `L` is the number of unstable neurons.
 
-### Why This Is The Final Output
+### Convergence Interpretation
 - Frames are plotted when `L % 25 == 0`, so a frame may be captured exactly at `L = 0`.
-- Therefore, Fig 39 is the final converged attractor state for this run.
+- When `L = 0`, the network has reached a stable attractor for this run.
 - The recovered `L` indicates successful associative recall from noisy input.
 - Small isolated white dots can remain depending on threshold/noise and are interpreted as residual spurious activations.
 
