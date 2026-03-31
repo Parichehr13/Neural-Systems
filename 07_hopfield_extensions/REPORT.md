@@ -34,10 +34,12 @@ The script exports a chronological sequence of snapshots (`exercise09_fig_001` t
 - **Fig 32-39**: Sparse-coding experiment (0/1 neurons, modified Hebbian learning, thresholded updates).
 
 ### Visual Gallery
-![Hopfield Extensions - Fig 1](figures/exercise09_fig_001.png)
-![Hopfield Extensions - Fig 20](figures/exercise09_fig_020.png)
-![Hopfield Extensions - Fig 30](figures/exercise09_fig_030.png)
-![Hopfield Extensions - Fig 39](figures/exercise09_fig_039.png)
+<img src="figures/exercise09_fig_001.png" alt="Hopfield Extensions - Fig 1" width="700" />
+<img src="figures/exercise09_fig_020.png" alt="Hopfield Extensions - Fig 20" width="700" />
+<img src="figures/exercise09_fig_030.png" alt="Hopfield Extensions - Fig 30" width="700" />
+<img src="figures/exercise09_fig_039.png" alt="Hopfield Extensions - Fig 39" width="700" />
+
+Display width is normalized for readability; original figure resolution is unchanged.
 
 ### Notes For Selected Figures
 1. **Fig 1** shows the training images used in the dilution test.
