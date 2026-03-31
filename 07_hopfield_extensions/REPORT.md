@@ -25,9 +25,6 @@ Test three Hopfield-network extensions:
   - `(Y-0.5) * (W*Y - teta) < 0`
 - Update: `Y = 1 - Y` for selected neurons.
 
-## Results
-The script exports a chronological sequence of snapshots (`exercise09_fig_001` to `exercise09_fig_039`) across all three extensions.
-
 ### Figure Timeline
 - **Fig 1-19**: Dilution experiment (image-pattern recovery with damaged synapses).
 - **Fig 20-31**: Low M/N experiment (6x6 symbolic patterns, including intermediate and spurious states).
