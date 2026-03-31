@@ -31,9 +31,16 @@ Test three Hopfield-network extensions:
 - **Fig 32-39**: Sparse-coding experiment (0/1 neurons, modified Hebbian learning, thresholded updates).
 
 ### Visual Gallery
+**Figure 1 - Dilution: Training Patterns**
 <img src="figures/exercise09_fig_001.png" alt="Hopfield Extensions - Fig 1" width="700" />
+
+**Figure 20 - Low M/N: Intermediate Recovery State**
 <img src="figures/exercise09_fig_020.png" alt="Hopfield Extensions - Fig 20" width="700" />
+
+**Figure 30 - Low M/N: Convergence with Spurious Components**
 <img src="figures/exercise09_fig_030.png" alt="Hopfield Extensions - Fig 30" width="700" />
+
+**Figure 39 - Sparse Coding: Final Converged Attractor**
 <img src="figures/exercise09_fig_039.png" alt="Hopfield Extensions - Fig 39" width="700" />
 
 Display width is normalized for readability; original figure resolution is unchanged.
