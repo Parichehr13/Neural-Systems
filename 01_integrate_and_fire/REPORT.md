@@ -6,10 +6,6 @@ This module implements and analyzes two related single-neuron spiking models bas
 - Stage 1: leaky integrate-and-fire (LIF) with fixed threshold.
 - Stage 2: LIF with dynamic threshold to model relative refractoriness.
 
-Reference document used for this module:
-
-- `reference/integrate_and_fire_model_spec.pdf`
-
 ## Modeling Assumptions
 - Single-compartment membrane model.
 - No explicit synaptic conductance dynamics in this module.

@@ -6,7 +6,6 @@ This folder contains the foundational single-neuron spiking models for the repos
 - `integrate_and_fire.py`: simulation code for fixed-threshold and dynamic-threshold models.
 - `REPORT.md`: technical explanation, equations, parameters, results, and interpretation.
 - `figures/`: generated plots.
-- `reference/integrate_and_fire_model_spec.pdf`: assignment specification used as reference.
 
 ## Run
 ```powershell
