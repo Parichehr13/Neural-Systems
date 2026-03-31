@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
 # In[1]:
@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# # Exercise 1 - Integrate and fire neuron (with constant threshold value)
+# # Stage 1 - Integrate and fire neuron (with constant threshold value)
 # Consider the model of a single *integrate and fire* neuron, consisting of a capacitance C, a conductance g the resting potential E0 = Vreset, driven by a current i(t) (order of magnitude of the current 0-4 nA). Plot the membrane potential V, and the individual output spikes, using a variable current as input (for example, a of rectified sinusoids or a triangular shape). Both the existence of refractory time and adaptation are neglected. Other parameters: E0 = Vreset = - 65 mV; Vth = -50 mV; $\tau_{m}$ = 30 - 50 ms; r = 10 $M \Omega$.
 
 # In[2]:
@@ -125,12 +125,12 @@ plt.title('Integrate and fire model with constant threshold potential')
 plt.show()
 
 
-# # Exercise 2 - Integrate and fire neuron (with variable threshold value)
+# # Stage 2 - Integrate and fire neuron (with variable threshold value)
 # Modify the previous model by including the relative refractory period by means of a variable threshold. 
 # 1. Evaluate the response to a constant input current (e.g., i = 4 nA). 
 # 2. Repeat the test with different constant current values (e.g., from 0 nA to 11 nA), and obtain the graph *discharge current-frequency*, point by point.
 # 
-# Other recommended parameters: VtL = -55 mV; VtH = 0 mV; $\tau_{t}$ = 10 ms and see parameters of exercise 1.
+# Other recommended parameters: VtL = -55 mV; VtH = 0 mV; $\tau_{t}$ = 10 ms and see parameters of Stage 1.
 
 # In[7]:
 
@@ -257,6 +257,7 @@ plt.show()
 
 
 # In[ ]:
+
 
 
 

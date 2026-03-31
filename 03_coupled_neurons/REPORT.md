@@ -1,4 +1,4 @@
-# Exercise 04 Report
+﻿# Coupled Neurons Report
 
 ## Objective
 Simulate two coupled integrate-and-fire neurons through synaptic conductances (excitatory/inhibitory coupling) and evaluate synchrony.
@@ -18,16 +18,17 @@ For each neuron:
 ## Results
 Potentials of both neurons:
 
-![Exercise 04 - Potentials](figures/exercise04_fig_001.png)
+![Coupled Neurons - Potentials](figures/exercise04_fig_001.png)
 
 Overlay of membrane potentials:
 
-![Exercise 04 - Overlay](figures/exercise04_fig_002.png)
+![Coupled Neurons - Overlay](figures/exercise04_fig_002.png)
 
 Spike trains:
 
-![Exercise 04 - Spikes](figures/exercise04_fig_003.png)
+![Coupled Neurons - Spikes](figures/exercise04_fig_003.png)
 
 Synaptic state variables:
 
-![Exercise 04 - Ps](figures/exercise04_fig_004.png)
+![Coupled Neurons - Ps](figures/exercise04_fig_004.png)
+

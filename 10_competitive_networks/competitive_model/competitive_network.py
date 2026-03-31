@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
-# # Exercises on competitive networks: Simulation of a neural network with lateral inhibition
+# # Competitive networks: Simulation of a neural network with lateral inhibition
 # 
 # Create a neural network composed of N=180 neurons arranged in a one-dimensional chain. Each neuron receives one input from the outside (e.g., a light beam in the compound eye). Furthermore, each neuron receives a self-excitation, and an inhibition from each of the other neurons. The strength of the inhibitory synapse decreases with the distance between neurons, through a Gaussian function (e.g., with a standard deviation of 24). 
 # 
@@ -11,7 +11,7 @@
 #     
 # To better understand the network output in these two cases, you can also plot the output of the network without competition (i.e., the output related to the input only). 
 # 
-# * (optional) Modify the previous exercise by imagining a circular law for lateral synapses, in order to  avoid edge effects. Simulate the network as in the previous point. 
+# * (optional) Modify the previous configuration by imagining a circular law for lateral synapses, in order to  avoid edge effects. Simulate the network as in the previous point. 
 
 # In[1]:
 
@@ -117,6 +117,7 @@ plt.show()
 
 
 # In[ ]:
+
 
 
 

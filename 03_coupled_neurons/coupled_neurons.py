@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
-# # Exercise on integrate and fire model: Neurons coupled through synaptic conductances
+# # Coupled integrate-and-fire neurons through synaptic conductances
 # 
 # Consider two "integrate and fire" neurons coupled each other via two synapses (excitatory and / or inhibitory). Include in the model the refractory period (variable threshold) and neglect the adaptation phenomenon. Analyze the response to a constant input current and evaluate the coupling (i.e., the synchronism) between the spikes.
 # 
-# Other recommended parameters: $r·i = 25 mV$; $r · gs_{max} = 0.5 − 5$; $\tau_s = 10 ms$; $E_{s} = 0 mV$ (excitatory) or $E_{s}=-70 mV$ (inhibitory); $dPs = 0.03-0.6$ and see parameters of exercises 1 and 2.
+# Other recommended parameters: $rÂ·i = 25 mV$; $r Â· gs_{max} = 0.5 âˆ’ 5$; $\tau_s = 10 ms$; $E_{s} = 0 mV$ (excitatory) or $E_{s}=-70 mV$ (inhibitory); $dPs = 0.03-0.6$ and see parameters of Stages 1 and 2.
 
 # In[1]:
 
@@ -182,6 +182,7 @@ plt.show()
 
 
 # In[ ]:
+
 
 
 

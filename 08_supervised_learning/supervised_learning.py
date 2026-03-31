@@ -1,13 +1,13 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
-# # Exercise on supervised learning: Training a network with one hidden layer through backpropagation
+# # Supervised learning: Training a network with one hidden layer through backpropagation
 # 
-# The response of peripheral chemoreceptors depends strongly non-linearly on the arterial pressure of oxygen and CO2. To derive the characteristic that binds the discharge frequency to these pressures, it is necessary to carry out highly invasive "open loop" experiments, in which one pressure is artificially kept constant and the other is modified in steps. In this exercise we propose to derive these characteristics directly from closed-loop data.
+# The response of peripheral chemoreceptors depends strongly non-linearly on the arterial pressure of oxygen and CO2. To derive the characteristic that binds the discharge frequency to these pressures, it is necessary to carry out highly invasive "open loop" experiments, in which one pressure is artificially kept constant and the other is modified in steps. In this module we propose to derive these characteristics directly from closed-loop data.
 # 
-# Consider the ‘chemo.mat’ file which contains values of PaO2 (‘Pao2’), PaCO2 (‘PaCo2’) and chemocector frequency (‘fac’). Train a two-layer neural network (1 output neuron + 1 hidden layer) to recognize the relationship between the firing rate and the pressures of O2 and CO2. As a first test, use only two neurons for the hidden layer, and sigmoidal features. The saturation value of the sigmoidal characteristics must be of the order of magnitude of the maximum frequency value in the experimental data.
+# Consider the â€˜chemo.matâ€™ file which contains values of PaO2 (â€˜Pao2â€™), PaCO2 (â€˜PaCo2â€™) and chemocector frequency (â€˜facâ€™). Train a two-layer neural network (1 output neuron + 1 hidden layer) to recognize the relationship between the firing rate and the pressures of O2 and CO2. As a first test, use only two neurons for the hidden layer, and sigmoidal features. The saturation value of the sigmoidal characteristics must be of the order of magnitude of the maximum frequency value in the experimental data.
 # * Prove the convergence with different values of the learning constant (by plotting the error over the epochs).
-# * Compare the values obtained from the network with the experimental ones (by plotting the network output and ground truth ‘fac’ values).
+# * Compare the values obtained from the network with the experimental ones (by plotting the network output and ground truth â€˜facâ€™ values).
 # * Check the network's ability to generalize. For this purpose, use the following theoretical formula, obtained from open-loop experiments:
 # 
 # fnor = 3 log(40/25)
@@ -211,6 +211,7 @@ plt.show()
 
 
 # In[ ]:
+
 
 
 

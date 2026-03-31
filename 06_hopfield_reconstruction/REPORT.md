@@ -1,4 +1,4 @@
-# Exercise 08 Report
+﻿# Hopfield Reconstruction Report
 
 ## Objective
 Hopfield network for image memory and recovery from corrupted patterns.
@@ -17,19 +17,20 @@ Hopfield network for image memory and recovery from corrupted patterns.
 ## Results
 Stored images (after preprocessing):
 
-![Exercise 08 - Stored Patterns](figures/exercise08_fig_001.png)
+![Hopfield Reconstruction - Stored Patterns](figures/exercise08_fig_001.png)
 
 Initial corrupted image:
 
-![Exercise 08 - Initial Corruption](figures/exercise08_fig_002.png)
+![Hopfield Reconstruction - Initial Corruption](figures/exercise08_fig_002.png)
 
 Recovery trajectory snapshots:
 
-![Exercise 08 - Recovery 1](figures/exercise08_fig_003.png)
-![Exercise 08 - Recovery 2](figures/exercise08_fig_004.png)
-![Exercise 08 - Recovery 3](figures/exercise08_fig_005.png)
-![Exercise 08 - Recovery 4](figures/exercise08_fig_006.png)
-![Exercise 08 - Recovery 5](figures/exercise08_fig_007.png)
-![Exercise 08 - Recovery 6](figures/exercise08_fig_008.png)
-![Exercise 08 - Recovery 7](figures/exercise08_fig_009.png)
-![Exercise 08 - Recovery Final](figures/exercise08_fig_010.png)
+![Hopfield Reconstruction - Recovery 1](figures/exercise08_fig_003.png)
+![Hopfield Reconstruction - Recovery 2](figures/exercise08_fig_004.png)
+![Hopfield Reconstruction - Recovery 3](figures/exercise08_fig_005.png)
+![Hopfield Reconstruction - Recovery 4](figures/exercise08_fig_006.png)
+![Hopfield Reconstruction - Recovery 5](figures/exercise08_fig_007.png)
+![Hopfield Reconstruction - Recovery 6](figures/exercise08_fig_008.png)
+![Hopfield Reconstruction - Recovery 7](figures/exercise08_fig_009.png)
+![Hopfield Reconstruction - Recovery Final](figures/exercise08_fig_010.png)
+

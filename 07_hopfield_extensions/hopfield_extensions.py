@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
 # In[1]:
@@ -10,15 +10,15 @@ from scipy.io import loadmat
 from pathlib import Path
 
 
-# # Exercises on the Hopfield model
+# # Hopfield model: extensions
 # 
 # Test the following changes to the Hopfield model.
-# * Dilution. Assume, with reference to the exercise 8 (i.e., using the same patterns and training as with exercise 8), that a certain percentage of the synapses is damaged or missing. To this end, assign a value of 0 to a certain percentage (perc) of synapses. Simulate the behavior of the network for different dilution values and find out how high the dilution must be in order loose stored patterns in recovery. 
+# * Dilution. Assume, with reference to module 06 (i.e., using the same patterns and training as with module 06), that a certain percentage of the synapses is damaged or missing. To this end, assign a value of 0 to a certain percentage (perc) of synapses. Simulate the behavior of the network for different dilution values and find out how high the dilution must be in order loose stored patterns in recovery. 
 # * Low M/N ratio. Simulate the learning of 4 images of 6x6 size (so a total of 36 neurons) in a Hopfield network, for example by generating 4 letters of the alphabet. The position of the letters will strongly affect the level of correlation between the patterns. Examine the frequency with which spurious patterns emerge. 
 # * Sparse patterns. Consider a Hopfield network with values 0 and 1 for neurons. Suppose that the information is "sparse", that is, only a percentage *a* of neurons (with *a* low, for example $a = 0.02$ or $a = 0.05$) is at the value +1 in the stored patterns. Three images with sparse coding are then generated (for example 18 pixels at +1 in a 30x30 image). Adopt the following Hebb rule:$\Delta W_{ij}=(y_i - a)(y_j - a)$. Modify the threshold of neurons (same threshold for all neurons) and look for the threshold value that guarantees good functioning. The rule for identifying neurons that can switch, and the formula for neuron switching, need to be modified accordingly.
 # 
 # 
-# As with exercise 8, it is suggested to implement and use auxiliary functions to transform images into arrays and vice versa (from_mtx_to_array and from_array_to_mtx), and to binarize images (im2bw). The latter function is useful only for the first point of exercise 9. 
+# As with module 06, it is suggested to implement and use auxiliary functions to transform images into arrays and vice versa (from_mtx_to_array and from_array_to_mtx), and to binarize images (im2bw). The latter function is useful only for the first point of this module. 
 # 
 # 
 
@@ -56,7 +56,7 @@ def im2bw(I, th_value=128):
 # Dilution
 data_path = Path(__file__).resolve().with_name('imdemos.mat')
 if not data_path.exists():
-    data_path = Path(__file__).resolve().parent.parent / 'exercise08' / 'imdemos.mat'
+    data_path = Path(__file__).resolve().parent.parent / '06_hopfield_reconstruction' / 'imdemos.mat'
 data = loadmat(str(data_path))
 #   box              128x128            16384  logical              
 #   circles          256x256            65536  logical              
@@ -319,6 +319,8 @@ while L > 0:
 
 
 # In[ ]:
+
+
 
 
 

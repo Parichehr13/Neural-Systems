@@ -1,4 +1,4 @@
-# Exercise 03 Report
+﻿# Adaptive Neuron Report
 
 ## Objective
 Integrate-and-fire neuron with:
@@ -20,11 +20,12 @@ Integrate-and-fire neuron with:
 ## Results
 Dynamics with adaptation (V, Vt, Pa, spikes):
 
-![Exercise 03 - Dynamics](figures/exercise03_fig_001.png)
+![Adaptive Neuron - Dynamics](figures/exercise03_fig_001.png)
 
 Current-frequency relationship:
 
-![Exercise 03 - I-F](figures/exercise03_fig_002.png)
+![Adaptive Neuron - I-F](figures/exercise03_fig_002.png)
 
 ## Notes
-- Figures generated automatically by running `exercise03.py` headlessly.
+- Figures generated automatically by running `adaptive_neuron.py` headlessly.
+

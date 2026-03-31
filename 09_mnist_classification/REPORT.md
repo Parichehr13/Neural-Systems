@@ -1,4 +1,4 @@
-# Exercise 11-12 Report
+﻿# MNIST Classification Report
 
 ## Objective
 Supervised handwritten-digit classification using deep neural networks (MNIST), including training/validation analysis and test evaluation.
@@ -24,12 +24,13 @@ Run note:
 ## Results
 Sample training image:
 
-![Exercise 11-12 - Sample](figures/exercise11_12_fig_001.png)
+![MNIST Classification - Sample](figures/exercise11_12_fig_001.png)
 
 Training/validation curves:
 
-![Exercise 11-12 - Curves](figures/exercise11_12_fig_002.png)
+![MNIST Classification - Curves](figures/exercise11_12_fig_002.png)
 
 Custom digit test image and prediction:
 
-![Exercise 11-12 - My Digit](figures/exercise11_12_fig_003.png)
+![MNIST Classification - My Digit](figures/exercise11_12_fig_003.png)
+

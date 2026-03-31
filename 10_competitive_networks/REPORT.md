@@ -1,4 +1,4 @@
-# Exercise 13 Report
+﻿# Competitive Networks Report
 
 ## Objective
 Simulate a competitive neural network with lateral inhibition in a 1D chain (`N=180`) and evaluate contrast enhancement / resolution effects.
@@ -17,8 +17,9 @@ Simulate a competitive neural network with lateral inhibition in a 1D chain (`N=
 ## Results
 Temporal evolution of network activity:
 
-![Exercise 13 - Evolution](figures/exercise13_fig_001.png)
+![Competitive Networks - Evolution](figures/exercise13_fig_001.png)
 
 Input profile and final competitive output vs feedforward-only output:
 
-![Exercise 13 - Output Comparison](figures/exercise13_fig_002.png)
+![Competitive Networks - Output Comparison](figures/exercise13_fig_002.png)
+

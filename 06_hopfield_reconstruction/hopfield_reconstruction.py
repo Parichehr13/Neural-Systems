@@ -1,14 +1,14 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
-# # Exercises on the Hopfield model
+# # Hopfield model: reconstruction
 # 
-# Load the ‘imdemos.mat’ file and extract 128x128 uint8 images (images with values from 0 to 255, e.g., ‘saturn’, ‘vertigo’, ‘coins’). Visualize the images. Convert them into binary images (images with only 0 and 1, threshold images using a threshold of 128), designing an ad-hoc function (e.g., named im2bw). Then, scale images such that each element of the matrix can have a value of -1 (background) or +1 (foreground). For reasons of memory limitations, reduce the image to a LxL=64x64 matrix, by extracting only rows and columns at even positions. 
+# Load the â€˜imdemos.matâ€™ file and extract 128x128 uint8 images (images with values from 0 to 255, e.g., â€˜saturnâ€™, â€˜vertigoâ€™, â€˜coinsâ€™). Visualize the images. Convert them into binary images (images with only 0 and 1, threshold images using a threshold of 128), designing an ad-hoc function (e.g., named im2bw). Then, scale images such that each element of the matrix can have a value of -1 (background) or +1 (foreground). For reasons of memory limitations, reduce the image to a LxL=64x64 matrix, by extracting only rows and columns at even positions. 
 # 
 # Then, simulate a binary Hopfield network trained with the Hebb rule.
 # *	Store the image in the weights of a Hopfield network with N = L2 neurons. To transform the pattern matrix into a vector of dimension L2, design an ad-hoc function (e.g., named from_mtx_to_array). Simulate the behavior of the Hopfield network, starting from a corrupted pattern, with an asynchronous update of the neurons (at each step, determine a list of neurons whose output can be updated, and randomly choose a neuron from those in the above list). To visualize the patterns, it is advisable to design an ad-hoc function to transform the vector into a matrix (e.g., named from_array_to_mtx). To corrupt a pattern, choose an assigned number of neurons randomly for the memorized pattern, and change the sign.
 # 
-# *	Once the good behavior of the network has been verified with a single image, repeat the exercise by storing M images with the Hebb rule. Simulate the network's ability to recover distorted images, and the possible presence of spurious images. Pay attention that the stored images are not too correlated (i.e., their scalar product is low).
+# *	Once the good behavior of the network has been verified with a single image, repeat the procedure by storing M images with the Hebb rule. Simulate the network's ability to recover distorted images, and the possible presence of spurious images. Pay attention that the stored images are not too correlated (i.e., their scalar product is low).
 # 
 # 
 
@@ -155,6 +155,7 @@ while L > 0: # until the number of neurons to switch (L) is = 0
 
 
 # In[ ]:
+
 
 
 

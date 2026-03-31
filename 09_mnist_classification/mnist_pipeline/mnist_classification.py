@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
-# # Exercises on supervised learning: Training deep neural networks
+# # Supervised learning: Training deep neural networks
 # 
-# Handwritten digit classification is a common benchmark task addressed when designing deep neural networks with gray-scale images as input. The task consists in associating to a handwritten digit the correct class, i.e., c∈{0,…,9} (10-way classification task). The most used dataset for this task is MNIST (available at http://yann.lecun.com/exdb/mnist/) and is composed by 60000 training and 10000 test images with size 28x28x1 (each pixel ij is characterized by one value, organized in a single input feature map).
+# Handwritten digit classification is a common benchmark task addressed when designing deep neural networks with gray-scale images as input. The task consists in associating to a handwritten digit the correct class, i.e., câˆˆ{0,â€¦,9} (10-way classification task). The most used dataset for this task is MNIST (available at http://yann.lecun.com/exdb/mnist/) and is composed by 60000 training and 10000 test images with size 28x28x1 (each pixel ij is characterized by one value, organized in a single input feature map).
 # 
-# See text of exercises 11 and 13. 
+# See project documentation for the MNIST classification setup. 
 # 
 
 # In[2]:
@@ -20,7 +20,7 @@ from pathlib import Path
 import os
 import sys
 
-utils_dir = Path(__file__).resolve().parents[1] / "utilities_for_exercise11-12" / "Python"
+utils_dir = Path(__file__).resolve().parents[1] / "utilities" / "Python"
 if utils_dir.exists() and str(utils_dir) not in sys.path:
     sys.path.insert(0, str(utils_dir))
 from load_my_digit import load_my_digit
@@ -30,7 +30,7 @@ from load_my_digit import load_my_digit
 
 
 def to_one_hot(y_dense, C):
-    # already provided in keras.utils.to_categorical, but ask to implement as an exercise 
+    # already provided in keras.utils.to_categorical, but ask to implement as a custom utility 
     # y_dense: ndarray (n_examples,) from 0 to C-1
     n_examples = y_dense.shape[0]
     y = np.zeros((n_examples, C), dtype=int)
@@ -95,7 +95,7 @@ x_test = x_test.reshape((n_examples_test, N, N, 1))
 print("Shape of the training examples (after reshaping):", x_train.shape)
 print("Shape of the test examples (after reshaping):", x_test.shape)
 
-# convert labels to one-hot encoded labels using a custom method (to be defined in the exercises 11 and 12)
+# convert labels to one-hot encoded labels using a custom method (to be defined in this module)
 print("Shape of the trainin labels:", labels_train.shape)
 print("Shape of the test labels:", labels_test.shape)
 y_train = to_one_hot(labels_train, C)
@@ -348,3 +348,4 @@ if model_type=='cnn':
         plt.imshow(output, cmap='gray')
         plt.title('output to kernel: '+ str(i))
     plt.tight_layout()
+

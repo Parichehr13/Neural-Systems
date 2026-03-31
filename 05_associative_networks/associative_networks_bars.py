@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
 # In[1]:
@@ -8,11 +8,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# # Exercise on hetero-associative networks
+# # Hetero-associative networks
 # 
-# Modify the previous exercise considering a network with 16 inputs and 4 outputs. Consider as a possible input pattern 4 bars on a 4x4 screen with different orientations. Each pixel of the screen can assume values ± 1 (first build the 4x4 matrices that represent the 4 bars and display them as images). Transform the 4x4 matrix into a vector by writing a dedicated function. 
+# Modify the previous module by considering a network with 16 inputs and 4 outputs. Consider as a possible input pattern 4 bars on a 4x4 screen with different orientations. Each pixel of the screen can assume values Â± 1 (first build the 4x4 matrices that represent the 4 bars and display them as images). Transform the 4x4 matrix into a vector by writing a dedicated function. 
 # 
-# Consider a network similar to the one used in the previous exercise, but with 4 output neurons, and train it with Hebb's rule and with 4 input bars.
+# Consider a network similar to the one used in the previous module, but with 4 output neurons, and train it with Hebb's rule and with 4 input bars.
 # 
 # Consider a bar corrupted by noise as an input to the network (it is advisable to add noise to the vector). To display the input on a 4x4 screen, write a function that transforms a vector into a matrix and display it as an image.
 # * Analyze the ability of the network to "recognize" the bar as the variance of the noise and the slope of the output sigmoid vary. 
@@ -203,6 +203,7 @@ plt.show()
 
 
 # In[ ]:
+
 
 
 

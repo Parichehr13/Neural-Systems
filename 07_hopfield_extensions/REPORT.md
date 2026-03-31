@@ -1,4 +1,4 @@
-# Exercise 09 Report
+﻿# Hopfield Extensions Report
 
 ## Objective
 Test three Hopfield-network extensions:
@@ -30,12 +30,13 @@ The script produced a sequence of recovery snapshots across the three tests.
 
 Early snapshots:
 
-![Exercise 09 - Fig 1](figures/exercise09_fig_001.png)
-![Exercise 09 - Fig 2](figures/exercise09_fig_002.png)
-![Exercise 09 - Fig 3](figures/exercise09_fig_003.png)
+![Hopfield Extensions - Fig 1](figures/exercise09_fig_001.png)
+![Hopfield Extensions - Fig 2](figures/exercise09_fig_002.png)
+![Hopfield Extensions - Fig 3](figures/exercise09_fig_003.png)
 
 Intermediate/final examples:
 
-![Exercise 09 - Fig 20](figures/exercise09_fig_020.png)
-![Exercise 09 - Fig 30](figures/exercise09_fig_030.png)
-![Exercise 09 - Fig 39](figures/exercise09_fig_039.png)
+![Hopfield Extensions - Fig 20](figures/exercise09_fig_020.png)
+![Hopfield Extensions - Fig 30](figures/exercise09_fig_030.png)
+![Hopfield Extensions - Fig 39](figures/exercise09_fig_039.png)
+

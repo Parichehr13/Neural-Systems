@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
 # In[1]:
@@ -8,13 +8,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# # Exercise 3 - Integrate and fire neuron (with adaptation)
+# # Adaptive neuron - Integrate and fire with adaptation (with adaptation)
 # 
-# Modify the previous *integrate and fire model* (exercise 2) by including an adaptation conductance $g_a$. 
+# Modify the previous *integrate and fire model* (Stage 2) by including an adaptation conductance $g_a$. 
 # 
 # * Evaluate the response to a constant input current in the presence and absence of the adaptation. Use as an adaptation time constant in the range: $\tau_{a}$ = 300 - 1000 ms and an adaptation potential Ea = -90 mV. The adaptation conductance can be varied (example of a possible value: $r\cdot g_{a,max}$ = 1 - 5) to evaluate its effect. Choose a small value for $\Delta p_{a}=0.03-0.2$.
 # 
-# * **Optional**: Repeat the test with different constant current values, and obtain the “current-discharge rate” plot.
+# * **Optional**: Repeat the test with different constant current values, and obtain the â€œcurrent-discharge rateâ€ plot.
 # 
 
 # In[2]:
@@ -166,7 +166,7 @@ plt.ylabel('Frequency (Hz)')
 plt.show()
 
 # If you want to save the obtained f-i relationship and compare it with other
-# models (exercises 1-2, save II and f variables also for exercises 1-2)
+# models (Stages 1-2, save II and f variables also for Stages 1-2)
 
 # from scipy.io import savemat
 # savemat('if_discharge_rate_refr_period_adaptation.mat', {'II': II, 'f':f})
@@ -177,7 +177,7 @@ plt.show()
 # In[8]:
 
 
-# If you want to compare f-i relationship with other models (exercises 1-3)
+# If you want to compare f-i relationship with other models (Stages 1-3)
 
 #from scipy.io import loadmat
 #data = loadmat('if_discharge_rate.mat')
@@ -200,6 +200,7 @@ plt.show()
 
 
 # In[ ]:
+
 
 
 

@@ -1,6 +1,6 @@
-# Exercises 06-07 Report
+﻿# Associative Networks Report
 
-## Exercise 06 (Hetero-Associative Network, 10x3)
+## Pattern Set A (Hetero-Associative Network, 10x3)
 
 ### Model Used in Code
 - Training (Hebbian linear map): `W = Y * X^T`
@@ -10,11 +10,11 @@
 ### Results
 Bar-plot comparisons for three input patterns:
 
-![Exercise 06 - Pattern 1](figures/exercise06_fig_001.png)
-![Exercise 06 - Pattern 2](figures/exercise06_fig_002.png)
-![Exercise 06 - Pattern 3](figures/exercise06_fig_003.png)
+![Set A - Pattern 1](figures/exercise06_fig_001.png)
+![Set A - Pattern 2](figures/exercise06_fig_002.png)
+![Set A - Pattern 3](figures/exercise06_fig_003.png)
 
-## Exercise 07 (Hetero-Associative Network, 16x4 with 4x4 bars)
+## Pattern Set B (Hetero-Associative Network, 16x4 with 4x4 bars)
 
 ### Model Used in Code
 - Four 4x4 bar-like patterns converted to 16-element vectors.
@@ -25,9 +25,10 @@ Bar-plot comparisons for three input patterns:
 ### Results
 Pattern visualization, noisy inputs, and reconstructions:
 
-![Exercise 07 - Inputs](figures/exercise07_fig_001.png)
-![Exercise 07 - Noisy Inputs](figures/exercise07_fig_002.png)
-![Exercise 07 - Recon 1](figures/exercise07_fig_003.png)
-![Exercise 07 - Recon 2](figures/exercise07_fig_004.png)
-![Exercise 07 - Recon 3](figures/exercise07_fig_005.png)
-![Exercise 07 - Recon 4](figures/exercise07_fig_006.png)
+![Set B - Inputs](figures/exercise07_fig_001.png)
+![Set B - Noisy Inputs](figures/exercise07_fig_002.png)
+![Set B - Recon 1](figures/exercise07_fig_003.png)
+![Set B - Recon 2](figures/exercise07_fig_004.png)
+![Set B - Recon 3](figures/exercise07_fig_005.png)
+![Set B - Recon 4](figures/exercise07_fig_006.png)
+
