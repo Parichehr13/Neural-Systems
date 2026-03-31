@@ -28,47 +28,40 @@ Test three Hopfield-network extensions:
 ## Results
 The script exports a chronological sequence of snapshots (`exercise09_fig_001` to `exercise09_fig_039`) across all three extensions.
 
-Figure references:
+### Figure Timeline
 - **Fig 1-19**: Dilution experiment (image-pattern recovery with damaged synapses).
-- **Fig 20-31**: Low M/N experiment (6x6 symbolic patterns, showing recovery and occasional spurious states).
+- **Fig 20-31**: Low M/N experiment (6x6 symbolic patterns, including intermediate and spurious states).
 - **Fig 32-39**: Sparse-coding experiment (0/1 neurons, modified Hebbian learning, thresholded updates).
 
-Selected examples:
-
+### Visual Gallery
 ![Hopfield Extensions - Fig 1](figures/exercise09_fig_001.png)
-Fig 1: training images used for the dilution test.
-
 ![Hopfield Extensions - Fig 20](figures/exercise09_fig_020.png)
-Fig 20: one low M/N recovery snapshot showing a partially structured intermediate state.
-
 ![Hopfield Extensions - Fig 30](figures/exercise09_fig_030.png)
-Fig 30: low M/N run converging toward an attractor with some distortion/spurious content.
-
 ![Hopfield Extensions - Fig 39](figures/exercise09_fig_039.png)
-Fig 39 (last image): final stable output of the **sparse-pattern** experiment.  
-It starts from a perturbed version of pattern `X1` (about 15% random flips), then asynchronous updates with
-`(Y-0.5)(WY-theta)<0`, `a=0.02`, and `theta=8` progressively remove noise.  
-This frame is the convergence endpoint, where the network cleanly reconstructs the stored `L` shape.
 
-## What Is The Last Image?
-The last image (`exercise09_fig_039.png`) belongs to the **sparse patterns** section of the code (Part 3), not to dilution or low M/N tests.
+### Notes For Selected Figures
+1. **Fig 1** shows the training images used in the dilution test.
+2. **Fig 20** shows a low M/N intermediate state with partial structure.
+3. **Fig 30** shows low M/N convergence toward an attractor, with distortion due to interference/spurious components.
+4. **Fig 39** is the final stable state of the sparse-coding test.
 
-How to interpret it:
-- White pixels are neurons at state `1` (active), black pixels are neurons at state `0` (inactive).
-- The target memory is pattern `X1`, which is an `L`-shaped sparse pattern in a 30x30 grid.
-- The run starts from a perturbed version of `X1` (`perc = 0.15`, about 15% random flips).
-- The network then performs asynchronous single-neuron updates using:
-  - learning: `W = sum((Yk-a)(Yk-a)^T)` with `a = 0.02`,
-  - switching test: `(Y - 0.5) * (WY - teta) < 0`,
-  - update: `Y_i = 1 - Y_i` for one selected unstable neuron at a time.
+## Last Image Interpretation (Fig 39)
+The last image (`exercise09_fig_039.png`) belongs to the sparse-pattern section of the code (Part 3), not to dilution or low M/N.
 
-Why this figure is the endpoint:
-- In the loop, `L` is the number of unstable neurons.
-- The script keeps updating until `L = 0` (no neuron violates the stability condition).
-- A frame is plotted whenever `L % 25 == 0`; therefore the final frame can occur exactly at convergence (`L = 0`).
-- So the last image is the **final stable attractor state** reached by the sparse Hopfield dynamics.
+### What It Represents
+- White pixels are active neurons (`1`), black pixels are inactive neurons (`0`).
+- The stored target is `X1`, an `L`-shaped sparse pattern on a 30x30 grid.
+- The initial state is a perturbed version of `X1` with about 15% random flips (`perc = 0.15`).
 
-Practical reading:
-- The clear recovered `L` indicates successful associative recall from a noisy input.
-- Any small isolated white pixels are residual errors/spurious activations and depend on the threshold `teta` and noise level.
+### Why It Converges To This Shape
+- Training uses the sparse Hebbian rule `W = sum((Yk-a)(Yk-a)^T)` with `a = 0.02`.
+- Update eligibility is computed by `(Y - 0.5) * (WY - teta) < 0` with `teta = 8`.
+- One unstable neuron is flipped at a time: `Y_i = 1 - Y_i`.
+- The loop stops when `L = 0`, where `L` is the number of unstable neurons.
+
+### Why This Is The Final Output
+- Frames are plotted when `L % 25 == 0`, so a frame may be captured exactly at `L = 0`.
+- Therefore, Fig 39 is the final converged attractor state for this run.
+- The recovered `L` indicates successful associative recall from noisy input.
+- Small isolated white dots can remain depending on threshold/noise and are interpreted as residual spurious activations.
 
