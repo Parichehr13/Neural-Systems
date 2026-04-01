@@ -169,13 +169,6 @@ The results confirm that even a relatively simple first-order recurrent model ca
 
 ---
 
-## Files
-- `10_competitive_networks/` -> source code for the simulation
-- `figures/competitive_networks_fig_001.png` -> temporal evolution of activity
-- `figures/competitive_networks_fig_002.png` -> final comparison between input, feedforward output, and competitive output
-
----
-
 ## Key Takeaway
 A competitive network with local lateral inhibition does not merely pass information forward: it **reorganizes** the response so that relevant spatial differences become more visible.  
 This is why lateral inhibition is a fundamental mechanism in both computational neuroscience and biological sensory processing.
