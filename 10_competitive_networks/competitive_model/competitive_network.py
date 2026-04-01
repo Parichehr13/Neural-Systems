@@ -1,124 +1,371 @@
 ﻿#!/usr/bin/env python
 # coding: utf-8
 
-# # Competitive networks: Simulation of a neural network with lateral inhibition
-# 
-# Create a neural network composed of N=180 neurons arranged in a one-dimensional chain. Each neuron receives one input from the outside (e.g., a light beam in the compound eye). Furthermore, each neuron receives a self-excitation, and an inhibition from each of the other neurons. The strength of the inhibitory synapse decreases with the distance between neurons, through a Gaussian function (e.g., with a standard deviation of 24). 
-# 
-# * Simulate the dynamic of the network using Euler's method (e.g., with a step of 0.1 s). Assume 1st order dynamics for each neuron, with a time constant of 3 s. Set neurons' thresholds at 6, the self-excitatory synapses at lex0=5 and the lateral inhibitory synapses at lin0=2. Observe how the behavior of the system changes as the value of the synapses varies (i.e., by varying the value of the self-excitatory synapse and the exponential law of lateral inhibition). Suppose that neurons have a sigmoidal excitation function. For simplicity, assume maximum activity as great as to one; furthermore, use a slope term of 0.6. Use as input signal (for example varying between 5 and 15):
-#     * a rectangular stimulus (contrast enhancement).
-#     * a stimulus comprising two nearby stimuli modelled via Gaussian functions and immersed in a high background (improved resolution).
-#     
-# To better understand the network output in these two cases, you can also plot the output of the network without competition (i.e., the output related to the input only). 
-# 
-# * (optional) Modify the previous configuration by imagining a circular law for lateral synapses, in order to  avoid edge effects. Simulate the network as in the previous point. 
+import json
+from pathlib import Path
 
-# In[1]:
-
-
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
-# In[2]:
+# ============================================================
+# 1) Activation function
+# ============================================================
+def sigmoid(u, slope=0.6):
+    """
+    Sigmoidal excitation function with maximum activity = 1.
+    """
+    u = np.clip(u, -100, 100)  # numerical stability
+    return 1.0 / (1.0 + np.exp(-slope * u))
 
 
-def sigmoid(x, k=0.6, x0=0):
-    # s(x) = 1 / 1 + exp(-k(x-x0))
-    tmp = -k*(x-x0)
-    return 1/(1+np.exp(tmp))
+# ============================================================
+# 2) Lateral synapse matrix
+# ============================================================
+def build_lateral_matrix(N, lex0=5, lin0=2, sigma_in=24, structure="circular"):
+    """
+    Build lateral connectivity matrix L.
+
+    Diagonal terms: self-excitation = lex0
+    Off-diagonal terms: inhibition decreases with distance
+                        through a Gaussian law.
+
+    structure:
+        - 'linear'   -> simple distance |i-j|
+        - 'circular' -> circular distance to avoid edge effects
+    """
+    idx = np.arange(N)
+    D = np.abs(idx[:, None] - idx[None, :])
+
+    if structure == "circular":
+        D = np.minimum(D, N - D)
+    elif structure != "linear":
+        raise ValueError("structure must be 'linear' or 'circular'")
+
+    L = -lin0 * np.exp(-(D**2) / (2 * sigma_in**2))
+    np.fill_diagonal(L, lex0)
+
+    return L
 
 
-# In[3]:
+# ============================================================
+# 3) Input stimuli
+# ============================================================
+def rectangular_stimulus(N, baseline=5, high=15, width=None):
+    """
+    Rectangular stimulus for contrast enhancement.
+    Input varies approximately between 5 and 15.
+    """
+    if width is None:
+        width = N // 8
+
+    I = baseline * np.ones(N)
+    center = N // 2
+    start = center - width // 2
+    stop = start + width
+    I[start:stop] = high
+    return I
 
 
-N=180              
-sigin=24 # 6                                                
-Lex0=5 # 2.4 #6                                                               
-Lin0=2 # 1.4 #3
-
-type_structure = 'circular' # or 'circular'
-
-L = np.zeros((N, N))
-k = np.arange(N)
-for i in k:
-    if type_structure == 'linear':
-        d = np.abs(k-i)
-    elif type_structure == 'circular':
-        d = np.abs(k-i)
-        idx = np.where(d > N/2)[0]
-        d[idx] = N - d[idx]
-    L[i,:] = -Lin0 * np.exp(-d**2/(2*sigin**2))
-    L[i,i] = Lex0
+def double_gaussian_stimulus(N, baseline=5, amp=10, c1=100, c2=120, sigma=7):
+    """
+    Two nearby Gaussian stimuli immersed in a high background.
+    Useful to test improved resolution.
+    """
+    n = np.arange(N)
+    I = (
+        baseline
+        + amp * np.exp(-((n - c1) ** 2) / (2 * sigma**2))
+        + amp * np.exp(-((n - c2) ** 2) / (2 * sigma**2))
+    )
+    return I
 
 
-# In[4]:
+# ============================================================
+# 4) Network simulation
+# ============================================================
+def simulate_competitive_network(I, L, threshold=6, tau=3, dt=0.1, n_steps=1000, slope=0.6):
+    """
+    Simulate the competitive network using Euler's method.
+
+    Dynamics:
+        dy/dt = (1/tau) * [ -y + sigmoid(I + L@y - threshold) ]
+    """
+    N = len(I)
+    y = np.zeros((N, n_steps))
+
+    for t in range(n_steps - 1):
+        u = I + L @ y[:, t] - threshold
+        y[:, t + 1] = y[:, t] + (dt / tau) * (-y[:, t] + sigmoid(u, slope=slope))
+
+    return y
 
 
-stim_type = 1
-baseline_value = 5
-if stim_type==0:
-    # rectangular stimulus
-    high_value = 10
-    Ix = baseline_value*np.ones((N,))
-    idx_start = round(N/2)
-    idx_stop = idx_start + round(N/4)
-    Ix[idx_start:idx_stop] = high_value
-    
-elif stim_type==1:
-    # 2 narrow stimuli
-    Ix = baseline_value*np.ones((N,))
-    
-    idx_stim0 = 100#85
-    idx_stim1 = 120#115
-    siginput = 7#10
-    
-    Ix = Ix + 10*np.exp(-(np.arange(N)-idx_stim0)**2/(2*siginput**2))            + 10*np.exp(-(np.arange(N)-idx_stim1)**2/(2*siginput**2))
+# ============================================================
+# 5) Plot helpers
+# ============================================================
+def plot_snapshots(I, y, title, snapshot_steps=(10, 30, 70, 120, 300, 999)):
+    """
+    Plot selected time snapshots of network evolution.
+    """
+    fig = plt.figure(figsize=(11, 6))
+    plt.plot(I, color="tab:blue", linewidth=2.5, label="Input")
+
+    for step in snapshot_steps:
+        if step < y.shape[1]:
+            plt.plot(y[:, step], linewidth=1.5, label=f"Output step {step}")
+
+    plt.title(title)
+    plt.xlabel("Neuron index")
+    plt.ylabel("Activity")
+    plt.xlim(0, len(I) - 1)
+    plt.ylim(0, max(1.05, np.max(I) + 0.5))
+    plt.legend(loc="best", fontsize=9)
+    plt.tight_layout()
+    return fig
 
 
-# In[5]:
+def plot_final_comparison(I, y_final, y_ff, title):
+    """
+    Compare:
+    - input
+    - feedforward-only output
+    - competitive-network final output
+    """
+    fig = plt.figure(figsize=(11, 7))
+
+    plt.subplot(2, 1, 1)
+    plt.plot(I, color="tab:green", linewidth=2)
+    plt.title(title)
+    plt.ylabel("Input")
+    plt.xlim(0, len(I) - 1)
+
+    plt.subplot(2, 1, 2)
+    plt.plot(y_ff, color="tab:blue", linewidth=2, label="Feedforward only")
+    plt.plot(y_final, color="tab:red", linewidth=2, label="Competitive final output")
+    plt.xlabel("Neuron index")
+    plt.ylabel("Activity")
+    plt.xlim(0, len(I) - 1)
+    plt.ylim(0, 1.05)
+    plt.legend()
+    plt.tight_layout()
+    return fig
 
 
-sigm_k=0.6
-threshold=6
-tau = 3
-max_iter = 1000
-dt = 0.1  
-t = np.arange(max_iter) * dt 
-x = np.zeros((N,max_iter))
+def plot_lateral_profile(L, neuron_idx=None, title="Lateral synapses profile"):
+    """
+    Plot incoming lateral synapses for one neuron.
+    Useful to visualize the Gaussian inhibition + self-excitation.
+    """
+    N = L.shape[0]
+    if neuron_idx is None:
+        neuron_idx = N // 2
 
-#its = []
-plt.figure(figsize=(11,8))
-for k in np.arange(len(t) - 1):
-    tmp = Ix + np.matmul(L, x[:,k])-threshold
-    x[:,k+1] = x[:,k] + dt*( (1/tau) * (-x[:,k] + sigmoid(tmp, k=sigm_k)) ) 
-    if k % 50 == 0:
-        plt.plot(np.arange(N), x[:,k+1], 'k', linewidth=1)
-        plt.axis([0, 200, 0, 1])
-        #its.append('step '+ str(k))
-plt.xlabel('neuron')
-plt.ylabel('x')
-#plt.legend(its)
-plt.show()
-
-feedforward = sigmoid(Ix-threshold, k=sigm_k)
-
-plt.figure(figsize=(11,8))
-plt.subplot(2,1,1)
-plt.plot(np.arange(N),Ix,'g')
-plt.xlabel('neuron')
-plt.ylabel('input')
-plt.subplot(2,1,2)
-plt.plot(np.arange(N),x[:,k+1],'r',np.arange(N),feedforward,'b',linewidth=2)
-plt.xlabel('neuron')
-plt.ylabel('x')
-plt.tight_layout()
-plt.show()
+    fig = plt.figure(figsize=(10, 4))
+    plt.plot(L[neuron_idx, :], linewidth=2)
+    plt.title(f"{title} (neuron {neuron_idx})")
+    plt.xlabel("Presynaptic neuron index")
+    plt.ylabel("Synaptic weight")
+    plt.xlim(0, N - 1)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    return fig
 
 
-# In[ ]:
+def parameter_exploration(I, N, threshold=6, tau=3, dt=0.1, n_steps=1000, slope=0.6, structure="circular"):
+    """
+    Show how the final competitive output changes by varying lex0 and sigma_in.
+    """
+    settings = [
+        (3, 2, 24),
+        (5, 2, 24),
+        (7, 2, 24),
+        (5, 2, 12),
+        (5, 2, 36),
+    ]
+
+    fig = plt.figure(figsize=(12, 8))
+
+    for i, (lex0_i, lin0_i, sigma_in_i) in enumerate(settings, start=1):
+        L_i = build_lateral_matrix(
+            N=N,
+            lex0=lex0_i,
+            lin0=lin0_i,
+            sigma_in=sigma_in_i,
+            structure=structure,
+        )
+
+        y_i = simulate_competitive_network(
+            I=I,
+            L=L_i,
+            threshold=threshold,
+            tau=tau,
+            dt=dt,
+            n_steps=n_steps,
+            slope=slope,
+        )
+
+        plt.subplot(len(settings), 1, i)
+        plt.plot(sigmoid(I - threshold, slope=slope), "b", linewidth=1.8, label="Feedforward only")
+        plt.plot(y_i[:, -1], "r", linewidth=1.8, label="Competitive final")
+        plt.xlim(0, N - 1)
+        plt.ylim(0, 1.05)
+        plt.ylabel("Act.")
+        plt.title(f"lex0={lex0_i}, lin0={lin0_i}, sigma_in={sigma_in_i}")
+        if i == 1:
+            plt.legend(fontsize=8)
+
+    plt.xlabel("Neuron index")
+    plt.tight_layout()
+    return fig
 
 
+def save_fig(fig, path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=220, bbox_inches="tight")
+    plt.close(fig)
 
 
+def main():
+    # ============================================================
+    # 6) Main parameters
+    # ============================================================
+    N = 180
+    dt = 0.1
+    tau = 3
+    threshold = 6
+    slope = 0.6
+    n_steps = 1000
 
+    lex0 = 5
+    lin0 = 2
+    sigma_in = 24
+
+    # Optional: choose 'linear' or 'circular'
+    structure = "circular"
+
+    # ============================================================
+    # 7) Build lateral matrix
+    # ============================================================
+    L = build_lateral_matrix(
+        N=N,
+        lex0=lex0,
+        lin0=lin0,
+        sigma_in=sigma_in,
+        structure=structure,
+    )
+
+    figures_dir = Path(__file__).resolve().parent.parent / "figures"
+
+    fig_paths = [
+        figures_dir / "competitive_networks_fig_001.png",
+        figures_dir / "competitive_networks_fig_002.png",
+        figures_dir / "competitive_networks_fig_003.png",
+        figures_dir / "competitive_networks_fig_004.png",
+        figures_dir / "competitive_networks_fig_005.png",
+        figures_dir / "competitive_networks_fig_006.png",
+    ]
+
+    # Visualize the lateral synapse profile
+    fig = plot_lateral_profile(L, neuron_idx=N // 2, title=f"Lateral connectivity ({structure} structure)")
+    save_fig(fig, fig_paths[0])
+
+    # ============================================================
+    # 8) CASE A: Rectangular stimulus (contrast enhancement)
+    # ============================================================
+    I_rect = rectangular_stimulus(N, baseline=5, high=15, width=N // 8)
+
+    y_rect = simulate_competitive_network(
+        I=I_rect,
+        L=L,
+        threshold=threshold,
+        tau=tau,
+        dt=dt,
+        n_steps=n_steps,
+        slope=slope,
+    )
+
+    # Feedforward-only output (without competition)
+    y_ff_rect = sigmoid(I_rect - threshold, slope=slope)
+
+    # Plot evolution and final comparison
+    fig = plot_snapshots(
+        I_rect,
+        y_rect,
+        title="Rectangular stimulus: temporal evolution of competitive network",
+    )
+    save_fig(fig, fig_paths[1])
+
+    fig = plot_final_comparison(
+        I_rect,
+        y_rect[:, -1],
+        y_ff_rect,
+        title="Rectangular stimulus: feedforward vs competitive response",
+    )
+    save_fig(fig, fig_paths[2])
+
+    # ============================================================
+    # 9) CASE B: Two nearby Gaussian stimuli (improved resolution)
+    # ============================================================
+    I_gauss = double_gaussian_stimulus(
+        N=N,
+        baseline=5,
+        amp=10,
+        c1=100,
+        c2=120,
+        sigma=7,
+    )
+
+    y_gauss = simulate_competitive_network(
+        I=I_gauss,
+        L=L,
+        threshold=threshold,
+        tau=tau,
+        dt=dt,
+        n_steps=n_steps,
+        slope=slope,
+    )
+
+    # Feedforward-only output (without competition)
+    y_ff_gauss = sigmoid(I_gauss - threshold, slope=slope)
+
+    # Plot evolution and final comparison
+    fig = plot_snapshots(
+        I_gauss,
+        y_gauss,
+        title="Two nearby Gaussian stimuli: temporal evolution of competitive network",
+    )
+    save_fig(fig, fig_paths[3])
+
+    fig = plot_final_comparison(
+        I_gauss,
+        y_gauss[:, -1],
+        y_ff_gauss,
+        title="Two nearby Gaussian stimuli: feedforward vs competitive response",
+    )
+    save_fig(fig, fig_paths[4])
+
+    # ============================================================
+    # 10) Optional: parameter exploration
+    # ============================================================
+    fig = parameter_exploration(
+        I_rect,
+        N,
+        threshold=threshold,
+        tau=tau,
+        dt=dt,
+        n_steps=n_steps,
+        slope=slope,
+        structure=structure,
+    )
+    save_fig(fig, fig_paths[5])
+
+    manifest = [p.name for p in fig_paths]
+    (figures_dir / "competitive_networks_manifest.json").write_text(
+        json.dumps(manifest, indent=2),
+        encoding="utf-8",
+    )
+
+
+if __name__ == "__main__":
+    main()

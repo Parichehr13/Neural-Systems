@@ -91,41 +91,52 @@ This is the computational basis of **contrast enhancement**.
 ---
 
 ## Results
-### 1. Temporal Evolution of Network Activity
+### Figure Timeline
+- **Fig 1**: lateral connectivity profile (self-excitation + distance-dependent inhibition).
+- **Fig 2**: rectangular-stimulus temporal evolution.
+- **Fig 3**: rectangular-stimulus feedforward vs competitive final response.
+- **Fig 4**: two-Gaussian-stimuli temporal evolution.
+- **Fig 5**: two-Gaussian-stimuli feedforward vs competitive final response.
+- **Fig 6**: parameter exploration (`lex0`, `lin0`, `sigma_in`) for final competitive output.
 
-![Competitive Network - Evolution](figures/competitive_networks_fig_001.png)
+### Visual Gallery
+**Figure 1 - Lateral Connectivity Profile**
+<div align="center">
+  <img src="figures/competitive_networks_fig_001.png" alt="Competitive Network - Lateral Connectivity" width="700" />
+</div>
 
-The figure shows the progressive evolution of neural activity during the simulation.
+**Figure 2 - Rectangular Stimulus: Temporal Evolution**
+<div align="center">
+  <img src="figures/competitive_networks_fig_002.png" alt="Competitive Network - Rectangular Evolution" width="700" />
+</div>
 
-At the beginning, the response is relatively smooth and still resembles the input distribution.  
-As time evolves, recurrent inhibitory interactions suppress surrounding activity while the most stimulated regions remain active.  
-This leads to a sharpening of the response profile.
+**Figure 3 - Rectangular Stimulus: Feedforward vs Competitive**
+<div align="center">
+  <img src="figures/competitive_networks_fig_003.png" alt="Competitive Network - Rectangular Comparison" width="700" />
+</div>
 
-The main qualitative effects are:
+**Figure 4 - Two Nearby Gaussian Stimuli: Temporal Evolution**
+<div align="center">
+  <img src="figures/competitive_networks_fig_004.png" alt="Competitive Network - Gaussian Evolution" width="700" />
+</div>
 
-- reduction of average activity level,
-- suppression of weak neighboring responses,
-- increased separation between active and inactive regions,
-- enhancement of sharp transitions in the signal.
+**Figure 5 - Two Nearby Gaussian Stimuli: Feedforward vs Competitive**
+<div align="center">
+  <img src="figures/competitive_networks_fig_005.png" alt="Competitive Network - Gaussian Comparison" width="700" />
+</div>
 
-This behavior is coherent with the expected effect of **local competition**: the network does not simply reproduce the input, but transforms it into a more selective representation.
+**Figure 6 - Parameter Exploration**
+<div align="center">
+  <img src="figures/competitive_networks_fig_006.png" alt="Competitive Network - Parameter Exploration" width="700" />
+</div>
 
----
+Display width is normalized for readability; original figure resolution is unchanged.
 
-### 2. Comparison Between Feedforward and Competitive Responses
-
-![Competitive Network - Output Comparison](figures/competitive_networks_fig_002.png)
-
-The second figure compares:
-
-- the original input profile,
-- the output of a purely feedforward response,
-- the final output of the competitive network.
-
-The comparison highlights that the competitive network produces a response that is more structured and localized than the feedforward one.  
-While the feedforward output mainly reflects input amplitude, the competitive output emphasizes regions where local contrast is strongest.
-
-In other words, the lateral inhibitory mechanism improves **resolution** by making nearby peaks more distinguishable and by reducing diffuse activation.
+### Notes On Results
+1. The lateral profile confirms a strong positive diagonal term (`lex0`) and Gaussian inhibitory surround.
+2. In both stimulus families, the competitive dynamics sharpen the response compared with feedforward-only output.
+3. The Gaussian pair case shows improved separation of nearby peaks, illustrating enhanced resolution.
+4. Parameter exploration shows how stronger self-excitation or narrower inhibition kernels change final selectivity.
 
 ---
 
@@ -167,8 +178,18 @@ Competitive interactions transform the network from a passive input-response sys
 
 The results confirm that even a relatively simple first-order recurrent model can reproduce an important computational principle observed in biological sensory systems.
 
----
+## Files
+- `10_competitive_networks/` -> source code for the simulation
+- `competitive_model/competitive_network.py` -> updated competitive-network implementation
+- `figures/competitive_networks_fig_001.png` -> lateral connectivity profile
+- `figures/competitive_networks_fig_002.png` -> rectangular stimulus temporal evolution
+- `figures/competitive_networks_fig_003.png` -> rectangular feedforward vs competitive comparison
+- `figures/competitive_networks_fig_004.png` -> Gaussian pair temporal evolution
+- `figures/competitive_networks_fig_005.png` -> Gaussian pair feedforward vs competitive comparison
+- `figures/competitive_networks_fig_006.png` -> parameter exploration summary
+- `figures/competitive_networks_manifest.json` -> manifest of generated figures
 
+---
 ## Key Takeaway
 A competitive network with local lateral inhibition does not merely pass information forward: it **reorganizes** the response so that relevant spatial differences become more visible.  
 This is why lateral inhibition is a fundamental mechanism in both computational neuroscience and biological sensory processing.
