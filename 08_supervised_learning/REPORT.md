@@ -1,27 +1,64 @@
 ﻿# Supervised Learning Report
 
 ## Objective
-Train and evaluate an EEGNet-based classifier for motor imagery decoding on the BCI IV-2a dataset.
+Train and evaluate a two-layer neural network (one hidden layer) to model the nonlinear relationship between chemoreceptor firing rate (`fac`) and blood gas pressures (`Pao2`, `Paco2`).
 
 ## Method Summary
 Two solution variants are included:
 - MATLAB pipeline (`supervised_learning.m`)
-- Python/Keras pipeline (`supervised_learning.py`)
+- Python pipeline (`supervised_learning.py`)
 
-Common workflow:
-- load single-trial EEG and labels,
-- split into training/validation/test sets,
-- build EEGNet architecture,
-- optimize with mini-batch training and checkpointing,
-- evaluate with accuracy and confusion matrix,
-- inspect learned spatial filters.
+Python workflow in this repository:
+- load `chemo.mat` (`Pao2`, `Paco2`, `fac`),
+- train a 2-hidden-unit network with sigmoid activations by backpropagation,
+- track training error over epochs,
+- compare predicted vs experimental responses,
+- test generalization against theoretical open-loop curves.
 
-## Current Run Notes
-- The repository contains full source utilities and dataset files for this module.
-- During automated batch figure export in this environment, no module figures were saved to `figures/` (manifest is empty).
-- This report is therefore based on the provided solution scripts and project structure.
+## Model Used in Code
+- Hidden layer: 2 neurons (`u1`, `u2`) with sigmoid output.
+- Output layer: 1 neuron (`usc`) with sigmoid output.
+- Learning rule: online gradient-based backpropagation.
+- Training horizon: controlled by `EX10_MAX_STEPS` (default `80000`).
+- Learning rate: `gamma = 0.001`.
 
-## Conclusion
-This module establishes a full supervised deep-learning workflow for EEG classification, from data handling to model interpretation via spatial filter visualization.
+## Results
+The script exports three figures (`exercise10_fig_001` to `exercise10_fig_003`).
 
+### Figure Timeline
+- **Fig 1**: training error versus epochs (convergence trend).
+- **Fig 2**: measured `fac` vs model-predicted `fac` on dataset samples.
+- **Fig 3**: generalization checks against theoretical relationships:
+  - varying `Paco2` at fixed `Pao2`,
+  - varying `Pao2` at fixed `Paco2`.
 
+### Visual Gallery
+**Figure 1 - Training Error Curve**
+<div align="center">
+  <img src="figures/exercise10_fig_001.png" alt="Supervised Learning - Fig 1" width="700" />
+</div>
+
+**Figure 2 - Actual vs Predicted Output**
+<div align="center">
+  <img src="figures/exercise10_fig_002.png" alt="Supervised Learning - Fig 2" width="700" />
+</div>
+
+**Figure 3 - Generalization Against Theoretical Curves**
+<div align="center">
+  <img src="figures/exercise10_fig_003.png" alt="Supervised Learning - Fig 3" width="700" />
+</div>
+
+Display width is normalized for readability; original figure resolution is unchanged.
+
+## Interpretation
+### Training Behavior
+- The error curve confirms iterative improvement under backpropagation.
+- Random initialization can change exact trajectory and final residual error between runs.
+
+### Fit Quality
+- Predicted values follow the measured trend, indicating the network captures the main nonlinear dependence.
+- Remaining mismatch reflects limited hidden capacity (2 units) and data variability.
+
+### Generalization
+- The model reproduces the qualitative trend of theoretical open-loop behavior for both pressure sweeps.
+- This supports using the learned mapping for closed-loop-to-open-loop characteristic approximation.
