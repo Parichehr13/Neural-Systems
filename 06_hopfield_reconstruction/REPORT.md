@@ -265,4 +265,14 @@ Overall, the code provides a correct and clear implementation of binary Hopfield
   <img src="figures/hopfield_reconstruction_fig_010.png" alt="Hopfield Reconstruction - Figure 10" width="700" />
 </div>
 
+**Figure 11 - Energy During Single-Image Recovery**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_011.png" alt="Hopfield Reconstruction - Figure 11 (Single Energy)" width="700" />
+</div>
+
+**Figure 12 - Energy During Multi-Image Recovery**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_012.png" alt="Hopfield Reconstruction - Figure 12 (Multi Energy)" width="700" />
+</div>
+
 Display width is normalized for readability; original figure resolution is unchanged.

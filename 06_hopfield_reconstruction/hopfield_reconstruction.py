@@ -4,6 +4,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
+from pathlib import Path
+
+
+FIG_DIR = Path(__file__).resolve().parent / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def save_current_figure(filename):
+    plt.savefig(FIG_DIR / filename, dpi=220, bbox_inches="tight")
 
 
 # ============================================================
@@ -140,7 +149,8 @@ def pattern_overlap(a, b):
 # ============================================================
 # LOAD AND PREPROCESS IMAGES
 # ============================================================
-data = loadmat("imdemos.mat")
+data_path = Path(__file__).resolve().with_name("imdemos.mat")
+data = loadmat(str(data_path))
 
 img_names = ["saturn", "vertigo", "coins"]
 images_128 = [data[name] for name in img_names]
@@ -214,6 +224,7 @@ plt.xlabel("Asynchronous update step")
 plt.ylabel("Energy")
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
+save_current_figure("hopfield_reconstruction_fig_011.png")
 plt.show()
 
 
@@ -257,6 +268,7 @@ plt.xlabel("Asynchronous update step")
 plt.ylabel("Energy")
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
+save_current_figure("hopfield_reconstruction_fig_012.png")
 plt.show()
 
 
