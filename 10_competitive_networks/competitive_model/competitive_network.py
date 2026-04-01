@@ -162,12 +162,19 @@ def plot_lateral_profile(L, neuron_idx=None, title="Lateral synapses profile"):
         neuron_idx = N // 2
 
     fig = plt.figure(figsize=(10, 4))
-    plt.plot(L[neuron_idx, :], linewidth=2)
+    plt.plot(
+        L[neuron_idx, :],
+        color="tab:purple",
+        linewidth=2.4,
+        label="Lateral weights",
+    )
+    plt.axhline(0, color="gray", linewidth=1, linestyle="--", alpha=0.7)
     plt.title(f"{title} (neuron {neuron_idx})")
     plt.xlabel("Presynaptic neuron index")
     plt.ylabel("Synaptic weight")
     plt.xlim(0, N - 1)
     plt.grid(True, alpha=0.3)
+    plt.legend()
     plt.tight_layout()
     return fig
 
