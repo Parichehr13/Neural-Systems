@@ -275,4 +275,4 @@ Overall, the code provides a correct and clear implementation of binary Hopfield
   <img src="figures/hopfield_reconstruction_fig_012.png" alt="Hopfield Reconstruction - Figure 12 (Multi Energy)" width="700" />
 </div>
 
-Display width is normalized for readability; original figure resolution is unchanged.
+The monotonic decrease of the energy confirms the expected convergence of the asynchronous Hopfield dynamics toward a stable attractor.
