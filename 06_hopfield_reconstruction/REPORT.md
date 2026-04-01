@@ -14,9 +14,6 @@ Hopfield network for image memory and recovery from corrupted patterns.
   - Randomly pick one unstable neuron and flip sign.
   - Repeat until no unstable neurons remain.
 
-## Results
-The script exports a chronological sequence (`exercise08_fig_001` to `exercise08_fig_010`) covering storage, corruption, and iterative recovery.
-
 ### Figure Timeline
 - **Fig 1**: stored patterns after preprocessing and downsampling.
 - **Fig 2**: corrupted initial state used as network input.
