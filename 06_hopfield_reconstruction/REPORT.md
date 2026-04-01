@@ -194,18 +194,6 @@ This code demonstrates that:
 
 ---
 
-## Limitations of the Current Implementation
-Compared with a more extended study, this code does **not** include:
-
-- an explicit experiment producing a **spurious attractor**;
-- a systematic analysis of performance versus corruption level;
-- a plot of overlap versus time;
-- a quantitative reconstruction accuracy metric.
-
-However, the current implementation already covers the core requirements and provides a clear comparison between single-pattern and multi-pattern storage.
-
----
-
 ## Conclusion
 This project confirms the classical behavior of the Hopfield auto-associative network.  
 After thresholding and reducing images, patterns are stored in the synaptic matrix through the Hebbian rule. Starting from a corrupted input, asynchronous dynamics progressively updates unstable neurons and leads the system toward a stable equilibrium point. In the single-image case, recall is typically robust; in the multi-image case, recall remains possible but becomes more sensitive to interference and pattern correlation.
