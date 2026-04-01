@@ -1,97 +1,264 @@
-﻿# Hopfield Reconstruction Report
+﻿# Hopfield Reconstruction from Corrupted Images
 
 ## Objective
-Hopfield network for image memory and recovery from corrupted patterns.
+The goal is to implement a **binary Hopfield network** for image storage and reconstruction.  
+Starting from grayscale images contained in `imdemos.mat`, the images are converted into binary patterns, mapped to the set \(\{-1,+1\}\), reduced to \(64 \times 64\), and stored in the synaptic matrix through the **Hebb rule**. The network is then tested in two conditions:
 
-## Model Used in Code
-- Images converted to binary then to {-1, +1}.
-- Downsampled to 64x64.
-- Pattern vectors: `Y1, Y2, Y3`.
-- Hebbian memory:
-  - `W = Y1*Y1^T + Y2*Y2^T + Y3*Y3^T`
-- Asynchronous update:
-  - Find unstable neurons: `idx where Y*(W*Y) < 0`
-  - Randomly pick one unstable neuron and flip sign.
-  - Repeat until no unstable neurons remain.
+1. **single-image storage**, to verify basic recovery from a corrupted pattern;
+2. **multi-image storage**, to evaluate recall in the presence of interference between multiple memories.
 
-### Figure Timeline
-- **Fig 1**: stored patterns after preprocessing and downsampling.
-- **Fig 2**: corrupted initial state used as network input.
-- **Fig 3-10**: asynchronous recovery trajectory snapshots.
+---
 
-### Visual Gallery
-**Figure 1 - Stored Patterns (Memory Set)**
-<div align="center">
-  <img src="figures/exercise08_fig_001.png" alt="Hopfield Reconstruction - Fig 1" width="700" />
-</div>
+## Project Requirements
+According to the project specification, the implementation must:
 
-**Figure 2 - Corrupted Initial Pattern**
-<div align="center">
-  <img src="figures/exercise08_fig_002.png" alt="Hopfield Reconstruction - Fig 2" width="700" />
-</div>
+- load `128 x 128` grayscale images from `imdemos.mat`,
+- threshold them at `128` to obtain binary images,
+- convert binary values to \(-1\) and \(+1\),
+- reduce the images to `64 x 64` by selecting even rows and columns,
+- convert each pattern from matrix form to a vector of length \(L^2\),
+- train a binary Hopfield network with the **Hebbian rule**,
+- start from a corrupted pattern,
+- use an **asynchronous update rule** in which the list of unstable neurons is computed and then one neuron is randomly selected and updated,
+- test both the **single-pattern** and the **multiple-pattern** case.
 
-**Figure 3 - Recovery Snapshot 1**
-<div align="center">
-  <img src="figures/exercise08_fig_003.png" alt="Hopfield Reconstruction - Fig 3" width="700" />
-</div>
+---
 
-**Figure 4 - Recovery Snapshot 2**
-<div align="center">
-  <img src="figures/exercise08_fig_004.png" alt="Hopfield Reconstruction - Fig 4" width="700" />
-</div>
+## Preprocessing Pipeline
+Three images are extracted from `imdemos.mat`:
 
-**Figure 5 - Recovery Snapshot 3**
-<div align="center">
-  <img src="figures/exercise08_fig_005.png" alt="Hopfield Reconstruction - Fig 5" width="700" />
-</div>
+- `saturn`
+- `vertigo`
+- `coins`
 
-**Figure 6 - Recovery Snapshot 4**
-<div align="center">
-  <img src="figures/exercise08_fig_006.png" alt="Hopfield Reconstruction - Fig 6" width="700" />
-</div>
+The code applies the following preprocessing steps:
 
-**Figure 7 - Recovery Snapshot 5**
-<div align="center">
-  <img src="figures/exercise08_fig_007.png" alt="Hopfield Reconstruction - Fig 7" width="700" />
-</div>
+1. **Thresholding**
+   \[
+   I_{bw}(x,y)=
+   \begin{cases}
+   1 & \text{if } I(x,y)\ge 128 \\
+   0 & \text{otherwise}
+   \end{cases}
+   \]
 
-**Figure 8 - Recovery Snapshot 6**
-<div align="center">
-  <img src="figures/exercise08_fig_008.png" alt="Hopfield Reconstruction - Fig 8" width="700" />
-</div>
+2. **Conversion to Hopfield states**
+   \[
+   I_{\pm 1} = 2I_{bw}-1
+   \]
+   so that background pixels become `-1` and foreground pixels become `+1`.
 
-**Figure 9 - Recovery Snapshot 7**
-<div align="center">
-  <img src="figures/exercise08_fig_009.png" alt="Hopfield Reconstruction - Fig 9" width="700" />
-</div>
+3. **Spatial reduction**
+   the original `128 x 128` image is reduced to `64 x 64` by selecting rows and columns with even spacing:
+   \[
+   I_{64} = I_{\pm 1}[::2, ::2]
+   \]
 
-**Figure 10 - Recovered Stable Pattern**
-<div align="center">
-  <img src="figures/exercise08_fig_010.png" alt="Hopfield Reconstruction - Fig 10" width="700" />
-</div>
+4. **Vectorization**
+   each \(64 \times 64\) pattern is reshaped into a vector of length
+   \[
+   N = 64^2 = 4096
+   \]
 
-Display width is normalized for readability; original figure resolution is unchanged.
+---
 
-### Notes For Selected Figures
-1. **Fig 1** shows the three binary memories embedded in the Hopfield weight matrix.
-2. **Fig 2** is a noisy/perturbed version of one stored pattern before dynamics start.
-3. **Fig 3-10** illustrate gradual denoising as unstable neurons are updated asynchronously.
-4. **Fig 10** corresponds to a stable attractor reached when no unstable neurons remain.
+## Hopfield Model
+The Hopfield network is an **auto-associative memory** made of \(N\) fully interconnected binary neurons with outputs in \(\{-1,+1\}\). The model stores patterns as equilibrium points of the dynamics, so that a corrupted version of a stored pattern can converge back to the original memory if it starts inside its basin of attraction.
 
-## Reconstruction Dynamics Interpretation
-### What The Patterns Represent
-- Pixel values are mapped to neuron states in `{-1, +1}`.
-- The network stores three image memories (`saturn`, `vertigo`, `coins`) after thresholding and downsampling to 64x64.
-- Recovery starts from a corrupted version of one stored memory (`perc = 0.02` random sign flips).
+### Hebbian learning
+Given a set of stored patterns \(Y^{(p)}\), the synaptic matrix is built as
 
-### Why Recovery Works
-- Weights are built with Hebbian superposition: `W = Y1Y1^T + Y2Y2^T + Y3Y3^T`.
-- An unstable neuron satisfies `Y_i * (WY)_i < 0`, meaning its current state disagrees with its local field.
-- One unstable neuron is flipped at each step, and the unstable set is recomputed.
-- The process terminates at `L = 0`, where `L` is the number of unstable neurons.
+\[
+W = \sum_{p=1}^{M} Y^{(p)} {Y^{(p)}}^T
+\]
 
-### How To Read The Sequence
-- Early snapshots retain visible corruption and mixed edges.
-- Mid snapshots show progressive alignment with one stored attractor.
-- The final snapshot shows convergence to a stable recalled pattern.
-- Minor artifacts can remain depending on noise level and memory interference.
+In the code, the matrix is also normalized by \(N\), and the diagonal is set to zero:
+
+\[
+w_{ii}=0
+\]
+
+so that self-connections are removed.
+
+### Asynchronous update
+The model uses **asynchronous dynamics**, where only one neuron is allowed to switch at each step.
+
+For a current state vector \(y\), the local field is
+
+\[
+h = Wy
+\]
+
+and the set of unstable neurons is computed through the condition
+
+\[
+y_i h_i < 0
+\]
+
+which means that the current neuron state is inconsistent with its local field. One unstable neuron is then randomly selected and updated.
+
+### Energy function
+To monitor convergence, the code evaluates the Hopfield energy
+
+\[
+E = -\frac{1}{2} y^T W y
+\]
+
+For symmetric weights and asynchronous updating, the energy can only decrease until the network reaches a stable equilibrium point.
+
+---
+
+## Pattern Correlation Analysis
+Before storing multiple images, the code computes the scalar products between the vectorized patterns:
+
+- `saturn` vs `vertigo`
+- `saturn` vs `coins`
+- `vertigo` vs `coins`
+
+This step is important because highly correlated patterns reduce memory quality, while weakly correlated patterns are easier to store correctly.
+
+---
+
+## Experiments
+## 1. Single-image storage
+In the first experiment, only one image (`coins`) is stored in the network.
+
+### Procedure
+- build the weight matrix using only the `coins` pattern;
+- corrupt the stored vector by flipping exactly `2%` of the neurons;
+- run asynchronous Hopfield dynamics until no unstable neurons remain.
+
+### Figures
+- original stored pattern
+- corrupted initial pattern
+- recovered final pattern
+- energy during recovery
+
+### Interpretation
+This experiment verifies basic auto-associative behavior.  
+With only one stored image, the attractor structure is simple and recovery is expected to work well as long as the corrupted image is not too far from the original pattern in Hamming distance.
+
+---
+
+## 2. Multi-image storage
+In the second experiment, three patterns are stored simultaneously:
+
+- `saturn`
+- `vertigo`
+- `coins`
+
+The corrupted `coins` image is again used as the initial condition.
+
+### Procedure
+- build the weight matrix as the Hebbian sum of the three stored patterns;
+- corrupt the `coins` vector with the same number of flipped neurons;
+- run asynchronous recovery;
+- compare the final state with the stored patterns through scalar products.
+
+### Figures
+- original target pattern
+- corrupted target pattern
+- recovered pattern
+- energy during recovery
+
+### Interpretation
+When multiple images are stored, the network must recover the correct pattern despite interference from other memories. In theory, disturbance introduced by other patterns increases with the number of stored episodes, and recall quality depends strongly on the ratio \(M/N\) and pattern correlations.
+
+The final overlaps printed by the code allow checking whether the recovered state remains closest to the intended memory (`coins`) or drifts toward another stored pattern.
+
+---
+
+## Recovery Dynamics
+The asynchronous dynamics proceeds by repeatedly:
+
+1. computing unstable neurons,
+2. choosing one unstable neuron at random,
+3. switching that neuron,
+4. recomputing the unstable set.
+
+The process stops when no unstable neuron remains.
+
+From a dynamical point of view:
+
+- in the early stage, the corrupted pattern still contains visible noise;
+- during update, the state progressively aligns with the attractor;
+- at convergence, the state becomes stable and no further neuron can switch.
+
+The energy plots produced by the script should decrease monotonically or remain non-increasing, in agreement with Hopfield convergence theory for symmetric weights and asynchronous updates.
+
+---
+
+## Relation to Theory
+This implementation reflects key theoretical properties of the Hopfield model:
+
+### Auto-associative memory
+The network is **content-addressable**: a partial or corrupted version of a memory can retrieve the whole pattern if the initial state lies within its basin of attraction.
+
+### Distributed storage
+Information is stored in the full synaptic matrix, not in a single neuron.
+
+### Limited capacity
+Memory capacity is limited, especially when stored patterns are random or correlated. Recall quality worsens as the number of stored memories increases.
+
+### Spurious states
+In addition to desired memories, the network may contain **spurious equilibrium points**, especially in the multiple-pattern case.
+
+---
+
+## Main Results to Highlight
+This code demonstrates that:
+
+- the preprocessing pipeline successfully converts grayscale images into Hopfield-compatible binary patterns;
+- a single stored image can be recovered from a corrupted version;
+- multiple stored images can still support recall, but recovery becomes more sensitive to interference;
+- scalar products between patterns provide useful information about expected storage difficulty;
+- the energy function provides quantitative confirmation of convergence.
+
+---
+
+## Limitations of the Current Implementation
+Compared with a more extended study, this code does **not** include:
+
+- an explicit experiment producing a **spurious attractor**;
+- a systematic analysis of performance versus corruption level;
+- a plot of overlap versus time;
+- a quantitative reconstruction accuracy metric.
+
+However, the current implementation already covers the core requirements and provides a clear comparison between single-pattern and multi-pattern storage.
+
+---
+
+## Conclusion
+This project confirms the classical behavior of the Hopfield auto-associative network.  
+After thresholding and reducing images, patterns are stored in the synaptic matrix through the Hebbian rule. Starting from a corrupted input, asynchronous dynamics progressively updates unstable neurons and leads the system toward a stable equilibrium point. In the single-image case, recall is typically robust; in the multi-image case, recall remains possible but becomes more sensitive to interference and pattern correlation.
+
+Overall, the code provides a correct and clear implementation of binary Hopfield memory for image reconstruction, consistent with both project specifications and the theoretical properties of the model.
+
+---
+
+## Suggested Figure Captions
+You can adapt these captions to saved screenshots or exported figures.
+
+- **Figure 1 - Original grayscale images.**  
+  The three selected `128 x 128` images extracted from `imdemos.mat`.
+
+- **Figure 2 - Preprocessed Hopfield patterns.**  
+  Binary thresholded, rescaled to \(\{-1,+1\}\), and reduced to `64 x 64`.
+
+- **Figure 3 - Single-image experiment: original and corrupted pattern.**  
+  The `coins` pattern before and after flipping `2%` of neurons.
+
+- **Figure 4 - Single-image recovery result.**  
+  Reconstruction obtained after asynchronous Hopfield dynamics.
+
+- **Figure 5 - Hopfield energy during single-image recovery.**  
+  Energy decreases until the network reaches a stable equilibrium.
+
+- **Figure 6 - Multi-image experiment: original and corrupted target.**  
+  The corrupted `coins` pattern used as input when three memories are stored.
+
+- **Figure 7 - Multi-image recovery result.**  
+  Final state reached by the network after asynchronous updates.
+
+- **Figure 8 - Hopfield energy during multi-image recovery.**  
+  Energy evolution in the multi-memory case.

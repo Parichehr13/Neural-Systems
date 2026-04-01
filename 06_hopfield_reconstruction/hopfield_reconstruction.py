@@ -1,161 +1,269 @@
 ﻿#!/usr/bin/env python
 # coding: utf-8
 
-# # Hopfield model: reconstruction
-# 
-# Load the â€˜imdemos.matâ€™ file and extract 128x128 uint8 images (images with values from 0 to 255, e.g., â€˜saturnâ€™, â€˜vertigoâ€™, â€˜coinsâ€™). Visualize the images. Convert them into binary images (images with only 0 and 1, threshold images using a threshold of 128), designing an ad-hoc function (e.g., named im2bw). Then, scale images such that each element of the matrix can have a value of -1 (background) or +1 (foreground). For reasons of memory limitations, reduce the image to a LxL=64x64 matrix, by extracting only rows and columns at even positions. 
-# 
-# Then, simulate a binary Hopfield network trained with the Hebb rule.
-# *	Store the image in the weights of a Hopfield network with N = L2 neurons. To transform the pattern matrix into a vector of dimension L2, design an ad-hoc function (e.g., named from_mtx_to_array). Simulate the behavior of the Hopfield network, starting from a corrupted pattern, with an asynchronous update of the neurons (at each step, determine a list of neurons whose output can be updated, and randomly choose a neuron from those in the above list). To visualize the patterns, it is advisable to design an ad-hoc function to transform the vector into a matrix (e.g., named from_array_to_mtx). To corrupt a pattern, choose an assigned number of neurons randomly for the memorized pattern, and change the sign.
-# 
-# *	Once the good behavior of the network has been verified with a single image, repeat the procedure by storing M images with the Hebb rule. Simulate the network's ability to recover distorted images, and the possible presence of spurious images. Pay attention that the stored images are not too correlated (i.e., their scalar product is low).
-# 
-# 
-
-# In[ ]:
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
-from pathlib import Path
 
 
-# In[2]:
+# ============================================================
+# AUXILIARY FUNCTIONS
+# ============================================================
+def im2bw(I, th_value=128):
+    """
+    Convert uint8 grayscale image to binary image {0,1}.
+    """
+    return (I >= th_value).astype(np.int8)
 
 
-# defining auxiliary functions
+def bw_to_pm1(Ibw):
+    """
+    Convert binary image {0,1} to Hopfield format {-1,+1}.
+    """
+    return (2 * Ibw - 1).astype(np.int8)
+
+
+def reduce_to_64(I):
+    """
+    Reduce 128x128 image to 64x64 by selecting even rows/columns.
+    """
+    return I[::2, ::2]
+
+
 def from_mtx_to_array(I):
-    # I: ndarray (N,N)
-    nrows = I.shape[0]
-    V = []
-    for i in np.arange(nrows):
-        V.extend(I[i,:])
-    return np.array(V)
+    """
+    Convert LxL matrix to vector of length L^2.
+    """
+    return I.reshape(-1)
+
 
 def from_array_to_mtx(V):
-    # V: ndarray (N**2)
-    nrows = int(np.sqrt(V.size))
-    print(nrows)
-    I = np.zeros((nrows, nrows))
-    for i in np.arange(nrows):
-        start = i*nrows
-        stop = i*nrows+nrows
-        I[i,:] = V[start:stop]
-    return I
-def im2bw(I, th_value=128):
-    #th_value depends on the specific data type (uint8: 0-255 values)
-    I_thresholded = np.zeros_like(I)
-    I_thresholded[I>=th_value] = 1
-    return I_thresholded
+    """
+    Convert vector of length L^2 to LxL matrix.
+    """
+    L = int(np.sqrt(V.size))
+    return V.reshape(L, L)
 
 
-# In[3]:
+def corrupt_pattern(V, n_flip, rng=None):
+    """
+    Flip exactly n_flip randomly chosen neurons.
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    Vc = V.copy()
+    idx = rng.choice(V.size, size=n_flip, replace=False)
+    Vc[idx] *= -1
+    return Vc, idx
 
 
-data_path = Path(__file__).resolve().with_name('imdemos.mat')
-data = loadmat(str(data_path))
-#   box              128x128            16384  logical              
-#   circles          256x256            65536  logical              
-#   circuit          128x128            16384  uint8                
-#   circuit4         256x256            65536  uint8                
-#   coins            128x128            16384  uint8                
-#   coins2           256x256            65536  uint8                
-#   dots             128x128            16384  logical              
-#   eight            256x256            65536  uint8                
-#   glass            128x128            16384  uint8                
-#   glass2           256x256            65536  uint8                
-#   liftbody128      128x128            16384  uint8                
-#   liftbody256      256x256            65536  uint8                
-#   moon             128x128            16384  uint8                
-#   pepper           128x128            16384  uint8                
-#   pout             128x128            16384  uint8                
-#   quarter          128x128            16384  uint8                
-#   rice             128x128            16384  uint8                
-#   rice2            128x128            16384  uint8                
-#   rice3            256x256            65536  uint8                
-#   saturn           128x128            16384  uint8                
-#   saturn2          256x256            65536  uint8                
-#   tire             128x128            16384  uint8                
-#   trees            128x128            16384  uint8                
-#   vertigo          128x128            16384  uint8                
-#   vertigo2         256x256            65536  uint8  
+def hebbian_weights(patterns, normalize=True):
+    """
+    Build Hopfield weight matrix using Hebb rule.
+    patterns: list of vectors in {-1,+1}
+    """
+    N = patterns[0].size
+    W = np.zeros((N, N), dtype=np.float32)
 
-XX1 = data['saturn']
-XX2 = data['vertigo']
-XX3 = data['coins']
+    for p in patterns:
+        W += np.outer(p, p)
 
-XX1 = im2bw(XX1)
-XX2 = im2bw(XX2)
-XX3 = im2bw(XX3)
+    np.fill_diagonal(W, 0)
 
-XX1=(XX1-0.5)*2
-XX2=(XX2-0.5)*2
-XX3=(XX3-0.5)*2
+    if normalize:
+        W /= N
 
-X1=XX1[::2,::2]
-X2=XX2[::2,::2]
-X3=XX3[::2,::2]
+    return W
 
-plt.figure()
-plt.subplot(1,3,1)
-plt.imshow(X1, cmap='gray')
-plt.title('saturn')
-plt.subplot(1,3,2)
-plt.imshow(X2, cmap='gray')
-plt.title('vertigo')
-plt.subplot(1,3,3)
-plt.imshow(X3, cmap='gray')
-plt.title('coins')
+
+def hopfield_energy(W, y):
+    """
+    Hopfield energy function.
+    """
+    return -0.5 * y @ W @ y
+
+
+def asynchronous_update(W, y0, max_steps=50000, rng=None, plot_every=None, title_prefix=""):
+    """
+    Asynchronous Hopfield update:
+    - compute unstable neurons
+    - randomly choose one
+    - update it
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    y = y0.copy()
+    energy_trace = [hopfield_energy(W, y)]
+    states = [y.copy()]
+    step = 0
+
+    while step < max_steps:
+        h = W @ y
+        unstable = np.where(y * h < 0)[0]
+
+        if unstable.size == 0:
+            break
+
+        i = rng.choice(unstable)
+        y[i] = 1 if h[i] >= 0 else -1
+
+        step += 1
+        energy_trace.append(hopfield_energy(W, y))
+
+        if plot_every is not None and step % plot_every == 0:
+            states.append(y.copy())
+            print(f"{title_prefix} step {step:5d} | unstable neurons: {unstable.size}")
+
+    return y, np.array(energy_trace), states, step
+
+
+def show_images(images, titles, cmap="gray", figsize=(12, 4)):
+    plt.figure(figsize=figsize)
+    for i, (img, title) in enumerate(zip(images, titles), start=1):
+        plt.subplot(1, len(images), i)
+        plt.imshow(img, cmap=cmap)
+        plt.title(title)
+        plt.axis("off")
+    plt.tight_layout()
+    plt.show()
+
+
+def pattern_overlap(a, b):
+    """
+    Scalar product / overlap between two stored patterns.
+    """
+    return np.dot(a, b)
+
+
+# ============================================================
+# LOAD AND PREPROCESS IMAGES
+# ============================================================
+data = loadmat("imdemos.mat")
+
+img_names = ["saturn", "vertigo", "coins"]
+images_128 = [data[name] for name in img_names]
+
+# Visualize original images
+show_images(images_128, [f"{n} (128x128)" for n in img_names])
+
+# Threshold to binary {0,1}, then scale to {-1,+1}, then reduce to 64x64
+images_bin = [im2bw(img) for img in images_128]
+images_pm1 = [bw_to_pm1(img) for img in images_bin]
+images_64 = [reduce_to_64(img) for img in images_pm1]
+
+# Visualize reduced Hopfield patterns
+show_images(images_64, [f"{n} (64x64, +-1)" for n in img_names])
+
+# Convert to vectors
+patterns = [from_mtx_to_array(img) for img in images_64]
+Y1, Y2, Y3 = patterns
+
+
+# ============================================================
+# CHECK CORRELATIONS BETWEEN STORED PATTERNS
+# ============================================================
+print("Pattern overlaps:")
+print("saturn  vs vertigo:", pattern_overlap(Y1, Y2))
+print("saturn  vs coins  :", pattern_overlap(Y1, Y3))
+print("vertigo vs coins  :", pattern_overlap(Y2, Y3))
+
+
+# ============================================================
+# PART 1 - SINGLE IMAGE STORAGE
+# ============================================================
+rng = np.random.default_rng(42)
+
+target_single = Y3   # coins
+W_single = hebbian_weights([target_single], normalize=True)
+
+n_flip = int(0.02 * target_single.size)   # 2% corruption
+Y0_single, flipped_idx = corrupt_pattern(target_single, n_flip=n_flip, rng=rng)
+
+print(f"\nSingle-image experiment: flipped {n_flip} neurons.")
+
+# Visualize clean and corrupted
+show_images(
+    [from_array_to_mtx(target_single), from_array_to_mtx(Y0_single)],
+    ["Original pattern", "Corrupted pattern"]
+)
+
+Yrec_single, E_single, states_single, steps_single = asynchronous_update(
+    W_single,
+    Y0_single,
+    max_steps=50000,
+    rng=rng,
+    plot_every=50,
+    title_prefix="[single]"
+)
+
+print(f"Single-image recovery finished in {steps_single} asynchronous updates.")
+
+show_images(
+    [from_array_to_mtx(target_single),
+     from_array_to_mtx(Y0_single),
+     from_array_to_mtx(Yrec_single)],
+    ["Original", "Corrupted", "Recovered"]
+)
+
+plt.figure(figsize=(8, 4))
+plt.plot(E_single)
+plt.title("Hopfield energy during recovery (single image)")
+plt.xlabel("Asynchronous update step")
+plt.ylabel("Energy")
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
 plt.show()
 
-Y1 = from_mtx_to_array(X1)
-Y2 = from_mtx_to_array(X2)
-Y3 = from_mtx_to_array(X3)
 
-Y = np.copy(Y3)
-perc=0.02
-N=len(Y1)
-# switching a small percentage of neurons
-idx_to_switch = np.where(np.random.rand(N,)<perc)
-Y[idx_to_switch]=-Y[idx_to_switch]
+# ============================================================
+# PART 2 - MULTI-IMAGE STORAGE
+# ============================================================
+W_multi = hebbian_weights([Y1, Y2, Y3], normalize=True)
 
-# training
-Y1 = Y1.reshape((Y1.shape[0], 1))
-Y2 = Y2.reshape((Y2.shape[0], 1))
-Y3 = Y3.reshape((Y3.shape[0], 1))
-W = np.matmul(Y1, Y1.T)+np.matmul(Y2, Y2.T)+np.matmul(Y3, Y3.T)
+target_multi = Y3   # corrupted coins again
+Y0_multi, flipped_idx_multi = corrupt_pattern(target_multi, n_flip=n_flip, rng=rng)
 
-# find the list of neurons that can switch (L neurons)
-idx_neurons_to_switch = np.where(Y*np.matmul(W, Y)<0)[0]
-L=len(idx_neurons_to_switch)
+print(f"\nMulti-image experiment: flipped {n_flip} neurons.")
 
-# visualize initial perturbate state
-plt.figure()
-plt.imshow(from_array_to_mtx(Y), cmap='gray')
-plt.title('Initial perturbated image')
+show_images(
+    [from_array_to_mtx(target_multi), from_array_to_mtx(Y0_multi)],
+    ["Stored image", "Corrupted image"]
+)
+
+Yrec_multi, E_multi, states_multi, steps_multi = asynchronous_update(
+    W_multi,
+    Y0_multi,
+    max_steps=50000,
+    rng=rng,
+    plot_every=50,
+    title_prefix="[multi]"
+)
+
+print(f"Multi-image recovery finished in {steps_multi} asynchronous updates.")
+
+show_images(
+    [from_array_to_mtx(target_multi),
+     from_array_to_mtx(Y0_multi),
+     from_array_to_mtx(Yrec_multi)],
+    ["Original", "Corrupted", "Recovered"]
+)
+
+plt.figure(figsize=(8, 4))
+plt.plot(E_multi)
+plt.title("Hopfield energy during recovery (multiple images)")
+plt.xlabel("Asynchronous update step")
+plt.ylabel("Energy")
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
 plt.show()
-while L > 0: # until the number of neurons to switch (L) is = 0 
-    # step 0: pick one random integer from 0 to L-1
-    idx = np.random.randint(L)
-    
-    # step 1: switch that neuron (1 neuron for each step is switched)
-    Y[idx_neurons_to_switch[idx]] = -1 * Y[idx_neurons_to_switch[idx]]
-    
-    # step 2: as the neuron value changed, the other neurons changed their value too,
-    # so we recompute the list of neurons to switch (update of the list of neurons to switch)
-    idx_neurons_to_switch = np.where(Y*np.matmul(W, Y)<0)[0]
-    
-    L=len(idx_neurons_to_switch) # update variable L 
-    
-    if L % 10 == 0: # visualize output only after 25 iterations
-        print('The number of neurons to switch (L) is: ', L)
-        plt.imshow(from_array_to_mtx(Y), cmap='gray')
-        plt.show()
 
 
-# In[ ]:
-
-
-
-
+# ============================================================
+# OPTIONAL - CHECK WHICH STORED IMAGE THE FINAL STATE RESEMBLES MOST
+# ============================================================
+final_overlaps = [pattern_overlap(Yrec_multi, p) for p in [Y1, Y2, Y3]]
+print("\nFinal overlaps with stored patterns:")
+for name, ov in zip(img_names, final_overlaps):
+    print(f"{name:8s}: {ov}")
