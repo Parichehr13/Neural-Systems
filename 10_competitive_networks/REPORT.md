@@ -33,54 +33,44 @@ In this model, the implementation focuses on the **local inhibitory case**, whic
 The network contains `N = 180` neurons arranged along a 1D chain.  
 Each neuron receives:
 
-1. an external input profile \( I_j \),
+1. an external input profile `I_j`,
 2. recurrent lateral input from the other neurons.
 
 The temporal evolution is modeled through a **first-order dynamical system** with sigmoidal activation:
 
-\[
-\tau \frac{dy_j(t)}{dt} = -y_j(t) + S\!\left(\sum_{k=1}^{N} l_{jk} y_k(t) + i_j \right)
-\]
+`tau * dy_j(t)/dt = -y_j(t) + S(sum_{k=1..N}(l_jk * y_k(t)) + i_j)`
 
 where:
 
-- \( y_j(t) \) is the activity of neuron \( j \),
-- \( i_j \) is the external input,
-- \( l_{jk} \) is the lateral interaction from neuron \( k \) to neuron \( j \),
-- \( S(\cdot) \) is a sigmoid nonlinearity,
-- \( \tau \) is the time constant.
+- `y_j(t)` is the activity of neuron `j`,
+- `i_j` is the external input,
+- `l_jk` is the lateral interaction from neuron `k` to neuron `j`,
+- `S(.)` is a sigmoid nonlinearity,
+- `tau` is the time constant.
 
 ### Lateral Interaction Matrix
 The implemented lateral matrix follows a **distance-dependent inhibitory law**:
 
 - **self-excitation** on the diagonal:
-  \[
-  L[i,i] = L_{ex0}
-  \]
+  `L[i,i] = Lex0`
 
 - **Gaussian inhibition** for different neurons:
-  \[
-  L[i,j] = -L_{in0}\exp\left(-\frac{d(i,j)^2}{2\sigma_{in}^2}\right), \quad i \neq j
-  \]
+  `L[i,j] = -Lin0 * exp(-(d(i,j)^2) / (2 * sigma_in^2)),  i != j`
 
-where \( d(i,j) \) is the neuron-to-neuron distance.  
+where `d(i,j)` is the neuron-to-neuron distance.  
 A **circular distance** option is used so that the chain behaves as a ring and edge effects are reduced.
 
 ### Activation Function
 The neuron nonlinearity is a sigmoid:
 
-\[
-S(x) = \frac{1}{1 + e^{-k(x-x_0)}}
-\]
+`S(x) = 1 / (1 + exp(-k * (x - x0)))`
 
 This keeps the response bounded and introduces a soft thresholding effect.
 
 ### Numerical Integration
 The differential equation is solved with an **Euler discretization**:
 
-\[
-x(:,k+1) = x(:,k) + dt \cdot \frac{1}{\tau}\left[-x(:,k) + S(I + Lx(:,k) - \text{threshold})\right]
-\]
+`x(:,k+1) = x(:,k) + dt * (1/tau) * (-x(:,k) + S(I + L*x(:,k) - threshold))`
 
 This allows the progressive observation of network activity from the initial state to its steady response.
 
