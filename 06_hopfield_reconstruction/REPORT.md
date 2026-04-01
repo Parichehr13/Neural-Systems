@@ -15,22 +15,86 @@ Hopfield network for image memory and recovery from corrupted patterns.
   - Repeat until no unstable neurons remain.
 
 ## Results
-Stored images (after preprocessing):
+The script exports a chronological sequence (`exercise08_fig_001` to `exercise08_fig_010`) covering storage, corruption, and iterative recovery.
 
-![Hopfield Reconstruction - Stored Patterns](figures/exercise08_fig_001.png)
+### Figure Timeline
+- **Fig 1**: stored patterns after preprocessing and downsampling.
+- **Fig 2**: corrupted initial state used as network input.
+- **Fig 3-10**: asynchronous recovery trajectory snapshots.
 
-Initial corrupted image:
+### Visual Gallery
+**Figure 1 - Stored Patterns (Memory Set)**
+<div align="center">
+  <img src="figures/exercise08_fig_001.png" alt="Hopfield Reconstruction - Fig 1" width="700" />
+</div>
 
-![Hopfield Reconstruction - Initial Corruption](figures/exercise08_fig_002.png)
+**Figure 2 - Corrupted Initial Pattern**
+<div align="center">
+  <img src="figures/exercise08_fig_002.png" alt="Hopfield Reconstruction - Fig 2" width="700" />
+</div>
 
-Recovery trajectory snapshots:
+**Figure 3 - Recovery Snapshot 1**
+<div align="center">
+  <img src="figures/exercise08_fig_003.png" alt="Hopfield Reconstruction - Fig 3" width="700" />
+</div>
 
-![Hopfield Reconstruction - Recovery 1](figures/exercise08_fig_003.png)
-![Hopfield Reconstruction - Recovery 2](figures/exercise08_fig_004.png)
-![Hopfield Reconstruction - Recovery 3](figures/exercise08_fig_005.png)
-![Hopfield Reconstruction - Recovery 4](figures/exercise08_fig_006.png)
-![Hopfield Reconstruction - Recovery 5](figures/exercise08_fig_007.png)
-![Hopfield Reconstruction - Recovery 6](figures/exercise08_fig_008.png)
-![Hopfield Reconstruction - Recovery 7](figures/exercise08_fig_009.png)
-![Hopfield Reconstruction - Recovery Final](figures/exercise08_fig_010.png)
+**Figure 4 - Recovery Snapshot 2**
+<div align="center">
+  <img src="figures/exercise08_fig_004.png" alt="Hopfield Reconstruction - Fig 4" width="700" />
+</div>
 
+**Figure 5 - Recovery Snapshot 3**
+<div align="center">
+  <img src="figures/exercise08_fig_005.png" alt="Hopfield Reconstruction - Fig 5" width="700" />
+</div>
+
+**Figure 6 - Recovery Snapshot 4**
+<div align="center">
+  <img src="figures/exercise08_fig_006.png" alt="Hopfield Reconstruction - Fig 6" width="700" />
+</div>
+
+**Figure 7 - Recovery Snapshot 5**
+<div align="center">
+  <img src="figures/exercise08_fig_007.png" alt="Hopfield Reconstruction - Fig 7" width="700" />
+</div>
+
+**Figure 8 - Recovery Snapshot 6**
+<div align="center">
+  <img src="figures/exercise08_fig_008.png" alt="Hopfield Reconstruction - Fig 8" width="700" />
+</div>
+
+**Figure 9 - Recovery Snapshot 7**
+<div align="center">
+  <img src="figures/exercise08_fig_009.png" alt="Hopfield Reconstruction - Fig 9" width="700" />
+</div>
+
+**Figure 10 - Recovered Stable Pattern**
+<div align="center">
+  <img src="figures/exercise08_fig_010.png" alt="Hopfield Reconstruction - Fig 10" width="700" />
+</div>
+
+Display width is normalized for readability; original figure resolution is unchanged.
+
+### Notes For Selected Figures
+1. **Fig 1** shows the three binary memories embedded in the Hopfield weight matrix.
+2. **Fig 2** is a noisy/perturbed version of one stored pattern before dynamics start.
+3. **Fig 3-10** illustrate gradual denoising as unstable neurons are updated asynchronously.
+4. **Fig 10** corresponds to a stable attractor reached when no unstable neurons remain.
+
+## Reconstruction Dynamics Interpretation
+### What The Patterns Represent
+- Pixel values are mapped to neuron states in `{-1, +1}`.
+- The network stores three image memories (`saturn`, `vertigo`, `coins`) after thresholding and downsampling to 64x64.
+- Recovery starts from a corrupted version of one stored memory (`perc = 0.02` random sign flips).
+
+### Why Recovery Works
+- Weights are built with Hebbian superposition: `W = Y1Y1^T + Y2Y2^T + Y3Y3^T`.
+- An unstable neuron satisfies `Y_i * (WY)_i < 0`, meaning its current state disagrees with its local field.
+- One unstable neuron is flipped at each step, and the unstable set is recomputed.
+- The process terminates at `L = 0`, where `L` is the number of unstable neurons.
+
+### How To Read The Sequence
+- Early snapshots retain visible corruption and mixed edges.
+- Mid snapshots show progressive alignment with one stored attractor.
+- The final snapshot shows convergence to a stable recalled pattern.
+- Minor artifacts can remain depending on noise level and memory interference.
