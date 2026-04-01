@@ -2,7 +2,7 @@
 
 ## Objective
 The goal is to implement a **binary Hopfield network** for image storage and reconstruction.  
-Starting from grayscale images contained in `imdemos.mat`, the images are converted into binary patterns, mapped to the set \(\{-1,+1\}\), reduced to \(64 \times 64\), and stored in the synaptic matrix through the **Hebb rule**. The network is then tested in two conditions:
+Starting from grayscale images contained in `imdemos.mat`, the images are converted into binary patterns, mapped to the set `{-1,+1}`, reduced to `64 x 64`, and stored in the synaptic matrix through the **Hebb rule**. The network is then tested in two conditions:
 
 1. **single-image storage**, to verify basic recovery from a corrupted pattern;
 2. **multi-image storage**, to evaluate recall in the presence of interference between multiple memories.
@@ -14,9 +14,9 @@ According to the project specification, the implementation must:
 
 - load `128 x 128` grayscale images from `imdemos.mat`,
 - threshold them at `128` to obtain binary images,
-- convert binary values to \(-1\) and \(+1\),
+- convert binary values to `-1` and `+1`,
 - reduce the images to `64 x 64` by selecting even rows and columns,
-- convert each pattern from matrix form to a vector of length \(L^2\),
+- convert each pattern from matrix form to a vector of length `L^2`,
 - train a binary Hopfield network with the **Hebbian rule**,
 - start from a corrupted pattern,
 - use an **asynchronous update rule** in which the list of unstable neurons is computed and then one neuron is randomly selected and updated,
@@ -34,75 +34,53 @@ Three images are extracted from `imdemos.mat`:
 The code applies the following preprocessing steps:
 
 1. **Thresholding**
-   \[
-   I_{bw}(x,y)=
-   \begin{cases}
-   1 & \text{if } I(x,y)\ge 128 \\
-   0 & \text{otherwise}
-   \end{cases}
-   \]
+   `I_bw(x,y) = 1 if I(x,y) >= 128, else 0`
 
 2. **Conversion to Hopfield states**
-   \[
-   I_{\pm 1} = 2I_{bw}-1
-   \]
+   `I_pm1 = 2 * I_bw - 1`
    so that background pixels become `-1` and foreground pixels become `+1`.
 
 3. **Spatial reduction**
    the original `128 x 128` image is reduced to `64 x 64` by selecting rows and columns with even spacing:
-   \[
-   I_{64} = I_{\pm 1}[::2, ::2]
-   \]
+   `I_64 = I_pm1[::2, ::2]`
 
 4. **Vectorization**
-   each \(64 \times 64\) pattern is reshaped into a vector of length
-   \[
-   N = 64^2 = 4096
-   \]
+   each `64 x 64` pattern is reshaped into a vector of length:
+   `N = 64^2 = 4096`
 
 ---
 
 ## Hopfield Model
-The Hopfield network is an **auto-associative memory** made of \(N\) fully interconnected binary neurons with outputs in \(\{-1,+1\}\). The model stores patterns as equilibrium points of the dynamics, so that a corrupted version of a stored pattern can converge back to the original memory if it starts inside its basin of attraction.
+The Hopfield network is an **auto-associative memory** made of `N` fully interconnected binary neurons with outputs in `{-1,+1}`. The model stores patterns as equilibrium points of the dynamics, so that a corrupted version of a stored pattern can converge back to the original memory if it starts inside its basin of attraction.
 
 ### Hebbian learning
-Given a set of stored patterns \(Y^{(p)}\), the synaptic matrix is built as
+Given a set of stored patterns `Y^(p)`, the synaptic matrix is built as
 
-\[
-W = \sum_{p=1}^{M} Y^{(p)} {Y^{(p)}}^T
-\]
+`W = sum_{p=1..M} (Y^(p) * (Y^(p))^T)`
 
-In the code, the matrix is also normalized by \(N\), and the diagonal is set to zero:
+In the code, the matrix is also normalized by `N`, and the diagonal is set to zero:
 
-\[
-w_{ii}=0
-\]
+`w_ii = 0`
 
 so that self-connections are removed.
 
 ### Asynchronous update
 The model uses **asynchronous dynamics**, where only one neuron is allowed to switch at each step.
 
-For a current state vector \(y\), the local field is
+For a current state vector `y`, the local field is
 
-\[
-h = Wy
-\]
+`h = W * y`
 
 and the set of unstable neurons is computed through the condition
 
-\[
-y_i h_i < 0
-\]
+`y_i * h_i < 0`
 
 which means that the current neuron state is inconsistent with its local field. One unstable neuron is then randomly selected and updated.
 
 ### Energy function
 To monitor convergence, the code evaluates the Hopfield energy
 
-\[
-E = -\frac{1}{2} y^T W y
-\]
+`E = -0.5 * y^T * W * y`
 
 For symmetric weights and asynchronous updating, the energy can only decrease until the network reaches a stable equilibrium point.
 
@@ -162,7 +140,7 @@ The corrupted `coins` image is again used as the initial condition.
 - energy during recovery
 
 ### Interpretation
-When multiple images are stored, the network must recover the correct pattern despite interference from other memories. In theory, disturbance introduced by other patterns increases with the number of stored episodes, and recall quality depends strongly on the ratio \(M/N\) and pattern correlations.
+When multiple images are stored, the network must recover the correct pattern despite interference from other memories. In theory, disturbance introduced by other patterns increases with the number of stored episodes, and recall quality depends strongly on the ratio `M/N` and pattern correlations.
 
 The final overlaps printed by the code allow checking whether the recovered state remains closest to the intended memory (`coins`) or drifts toward another stored pattern.
 
@@ -236,29 +214,55 @@ Overall, the code provides a correct and clear implementation of binary Hopfield
 
 ---
 
-## Suggested Figure Captions
-You can adapt these captions to saved screenshots or exported figures.
+## Figure Gallery
+**Figure 1**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_001.png" alt="Hopfield Reconstruction - Figure 1" width="700" />
+</div>
 
-- **Figure 1 - Original grayscale images.**  
-  The three selected `128 x 128` images extracted from `imdemos.mat`.
+**Figure 2**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_002.png" alt="Hopfield Reconstruction - Figure 2" width="700" />
+</div>
 
-- **Figure 2 - Preprocessed Hopfield patterns.**  
-  Binary thresholded, rescaled to \(\{-1,+1\}\), and reduced to `64 x 64`.
+**Figure 3**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_003.png" alt="Hopfield Reconstruction - Figure 3" width="700" />
+</div>
 
-- **Figure 3 - Single-image experiment: original and corrupted pattern.**  
-  The `coins` pattern before and after flipping `2%` of neurons.
+**Figure 4**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_004.png" alt="Hopfield Reconstruction - Figure 4" width="700" />
+</div>
 
-- **Figure 4 - Single-image recovery result.**  
-  Reconstruction obtained after asynchronous Hopfield dynamics.
+**Figure 5**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_005.png" alt="Hopfield Reconstruction - Figure 5" width="700" />
+</div>
 
-- **Figure 5 - Hopfield energy during single-image recovery.**  
-  Energy decreases until the network reaches a stable equilibrium.
+**Figure 6**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_006.png" alt="Hopfield Reconstruction - Figure 6" width="700" />
+</div>
 
-- **Figure 6 - Multi-image experiment: original and corrupted target.**  
-  The corrupted `coins` pattern used as input when three memories are stored.
+**Figure 7**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_007.png" alt="Hopfield Reconstruction - Figure 7" width="700" />
+</div>
 
-- **Figure 7 - Multi-image recovery result.**  
-  Final state reached by the network after asynchronous updates.
+**Figure 8**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_008.png" alt="Hopfield Reconstruction - Figure 8" width="700" />
+</div>
 
-- **Figure 8 - Hopfield energy during multi-image recovery.**  
-  Energy evolution in the multi-memory case.
+**Figure 9**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_009.png" alt="Hopfield Reconstruction - Figure 9" width="700" />
+</div>
+
+**Figure 10**
+<div align="center">
+  <img src="figures/hopfield_reconstruction_fig_010.png" alt="Hopfield Reconstruction - Figure 10" width="700" />
+</div>
+
+Display width is normalized for readability; original figure resolution is unchanged.
