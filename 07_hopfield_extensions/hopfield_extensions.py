@@ -8,6 +8,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
 from pathlib import Path
+import json
+
+
+FIG_DIR = Path(__file__).resolve().parent / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+_fig_counter = 1
+_saved_figures = []
+
+
+def save_and_show():
+    global _fig_counter
+    for num in plt.get_fignums():
+        fig = plt.figure(num)
+        name = f"hopfield_extensions_fig_{_fig_counter:03d}.png"
+        fig.savefig(FIG_DIR / name, dpi=220, bbox_inches="tight")
+        _saved_figures.append(name)
+        _fig_counter += 1
+    plt.show()
+    plt.close("all")
 
 
 # # Hopfield model: extensions
@@ -107,7 +126,7 @@ plt.subplot(1,3,2)
 plt.imshow(X2, cmap='gray')
 plt.subplot(1,3,3)
 plt.imshow(X3, cmap='gray')
-plt.show()
+save_and_show()
 
 
 Y1 = from_mtx_to_array(X1)
@@ -142,7 +161,7 @@ print('The number of neurons to switch (L) is: ', L)
 plt.figure(figsize=(5,5))
 plt.imshow(from_array_to_mtx(Y), cmap='gray')
 plt.title('Initial perturbated image')
-plt.show()
+save_and_show()
 
 while L > 0:# until the number of neurons to switch (L) is = 0 
     # step 0: pick one random integer from 0 to L-1
@@ -160,7 +179,7 @@ while L > 0:# until the number of neurons to switch (L) is = 0
         print('The number of neurons to switch (L) is: ', L)
         plt.figure(figsize=(5,5))
         plt.imshow(from_array_to_mtx(Y), cmap='gray')
-        plt.show()
+        save_and_show()
 
 
 # In[4]:
@@ -192,7 +211,7 @@ plt.subplot(2,2,3)
 plt.imshow(I3, cmap='gray')
 plt.subplot(2,2,4)
 plt.imshow(I4, cmap='gray')
-plt.show()
+save_and_show()
 
 Y1 = from_mtx_to_array(I1)
 Y2 = from_mtx_to_array(I2)
@@ -208,7 +227,7 @@ mask_to_switch = (mask_to_switch-0.5)*2
 plt.figure(figsize=(5,5))
 plt.imshow(from_array_to_mtx(Y3), cmap='gray')
 plt.title('Selected image')
-plt.show()
+save_and_show()
 
 Y = Y3*mask_to_switch
 
@@ -227,7 +246,7 @@ print('The number of neurons to switch (L) is: ', L)
 plt.figure(figsize=(5,5))
 plt.imshow(from_array_to_mtx(Y), cmap='gray')
 plt.title('Initial perturbated image')
-plt.show()
+save_and_show()
 while L > 0: # until the number of neurons to switch (L) is = 0 
     # step 0: pick one random integer from 0 to L-1
     idx = np.random.randint(L)
@@ -245,7 +264,7 @@ while L > 0: # until the number of neurons to switch (L) is = 0
         print('The number of neurons to switch (L) is: ', L)
         plt.figure(figsize=(5,5))
         plt.imshow(from_array_to_mtx(Y), cmap='gray')
-        plt.show()
+        save_and_show()
 
 
 # In[5]:
@@ -270,7 +289,7 @@ plt.subplot(2,2,2)
 plt.imshow(X2, cmap='gray')
 plt.subplot(2,2,3)
 plt.imshow(X3, cmap='gray')
-plt.show()       
+save_and_show()
 
 Y1 = from_mtx_to_array(X1)
 Y2 = from_mtx_to_array(X2)
@@ -299,7 +318,7 @@ print('The number of neurons to switch (L) is: ', L)
 plt.figure(figsize=(5,5))
 plt.imshow(from_array_to_mtx(Y), cmap='gray')
 plt.title('Initial perturbated image')
-plt.show()
+save_and_show()
 while L > 0:
     # step 0: pick one random integer from 0 to L-1
     idx = np.random.randint(L)
@@ -315,10 +334,15 @@ while L > 0:
         print('The number of neurons to switch (L) is: ', L)
         plt.figure(figsize=(5,5))
         plt.imshow(from_array_to_mtx(Y), cmap='gray')
-        plt.show()
+        save_and_show()
 
 
 # In[ ]:
+
+
+manifest_path = FIG_DIR / "hopfield_extensions_manifest.json"
+manifest_path.write_text(json.dumps(_saved_figures, indent=2), encoding="utf-8")
+print(f"Saved {len(_saved_figures)} figures in {FIG_DIR}")
 
 
 
