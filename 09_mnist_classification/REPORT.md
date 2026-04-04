@@ -24,13 +24,13 @@ Run note:
 ## Results
 Sample training image:
 
-![MNIST Classification - Sample](figures/exercise11_12_fig_001.png)
+![MNIST Classification - Sample](figures/mnist_classification_fig_001_sample_input.png)
 
 Training/validation curves:
 
-![MNIST Classification - Curves](figures/exercise11_12_fig_002.png)
+![MNIST Classification - Curves](figures/mnist_classification_fig_002_training_history.png)
 
 Custom digit test image and prediction:
 
-![MNIST Classification - My Digit](figures/exercise11_12_fig_003.png)
+![MNIST Classification - My Digit](figures/mnist_classification_fig_008_custom_digit.png)
 

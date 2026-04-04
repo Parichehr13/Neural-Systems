@@ -1,0 +1,10 @@
+[
+  "mnist_classification_fig_001_sample_input.png",
+  "mnist_classification_fig_002_training_history.png",
+  "mnist_classification_fig_003_validation_confusion_raw.png",
+  "mnist_classification_fig_004_validation_confusion_norm.png",
+  "mnist_classification_fig_005_test_confusion_raw.png",
+  "mnist_classification_fig_006_test_confusion_norm.png",
+  "mnist_classification_fig_007_misclassified_examples.png",
+  "mnist_classification_fig_008_custom_digit.png"
+]
