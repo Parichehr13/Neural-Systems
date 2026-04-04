@@ -11,14 +11,10 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import sys
+import json
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 from sklearn.model_selection import train_test_split
 from pathlib import Path
-
-utils_dir = Path(__file__).resolve().parents[1] / "utilities" / "Python"
-if utils_dir.exists() and str(utils_dir) not in sys.path:
-    sys.path.insert(0, str(utils_dir))
 from load_my_digit import load_my_digit
 
 # ------------------------------------------------------------
@@ -26,6 +22,26 @@ from load_my_digit import load_my_digit
 # ------------------------------------------------------------
 np.random.seed(42)
 tf.random.set_seed(42)
+
+# ------------------------------------------------------------
+# Figure export
+# ------------------------------------------------------------
+SAVE_FIGURES = os.getenv("EX11_SAVE_FIGURES", "1") != "0"
+PROJECT_DIR = Path(__file__).resolve().parent
+FIG_DIR = PROJECT_DIR / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+FIGS_WRITTEN = []
+FIG_COUNTER = 0
+
+
+def save_current_figure(label):
+    global FIG_COUNTER
+    if not SAVE_FIGURES:
+        return
+    FIG_COUNTER += 1
+    fname = f"mnist_classification_fig_{FIG_COUNTER:03d}_{label}.png"
+    plt.savefig(FIG_DIR / fname, dpi=300, bbox_inches="tight")
+    FIGS_WRITTEN.append(fname)
 
 # ============================================================
 # Helper functions
@@ -66,6 +82,7 @@ def plot_history(history):
     plt.grid(True, alpha=0.3)
 
     plt.tight_layout()
+    save_current_figure("training_history")
     plt.show()
 
 
@@ -80,6 +97,7 @@ def plot_confusion(y_true, y_pred, split_name="Test"):
     disp.plot(ax=ax, cmap="Blues", colorbar=False)
     plt.title(f"{split_name} confusion matrix")
     plt.tight_layout()
+    save_current_figure(f"{split_name.lower()}_confusion_raw")
     plt.show()
 
     # Normalized confusion matrix
@@ -89,6 +107,7 @@ def plot_confusion(y_true, y_pred, split_name="Test"):
     disp.plot(ax=ax, cmap="Blues", colorbar=False, values_format=".2f")
     plt.title(f"{split_name} normalized confusion matrix")
     plt.tight_layout()
+    save_current_figure(f"{split_name.lower()}_confusion_norm")
     plt.show()
 
 
@@ -134,6 +153,7 @@ def plot_prediction_examples(x_data, labels_true, y_pred, n_examples=12):
 
     plt.suptitle("Misclassified examples")
     plt.tight_layout()
+    save_current_figure("misclassified_examples")
     plt.show()
 
 
@@ -163,6 +183,7 @@ def plot_cnn_kernels_and_features(model, x_example):
 
     plt.suptitle("First convolutional layer kernels")
     plt.tight_layout()
+    save_current_figure("cnn_first_layer_kernels")
     plt.show()
 
     # ---- Feature maps from real forward pass
@@ -186,6 +207,7 @@ def plot_cnn_kernels_and_features(model, x_example):
 
         plt.suptitle(f"Feature maps from Conv Layer {layer_idx + 1}")
         plt.tight_layout()
+        save_current_figure(f"cnn_feature_maps_layer_{layer_idx + 1}")
         plt.show()
 
 
@@ -285,6 +307,7 @@ else:
 plt.title("One-hot label: " + str(target_lbl))
 plt.axis("off")
 plt.tight_layout()
+save_current_figure("sample_input")
 plt.show()
 
 # ============================================================
@@ -407,7 +430,7 @@ plot_prediction_examples(x_test, labels_test, y_pred_test, n_examples=12)
 # Evaluate on personal digit (only meaningful for grayscale 28x28 datasets)
 # ============================================================
 if channels == 1 and H == 28 and W == 28:
-    sample_digit_path = str(utils_dir / "sample_digit.jpg")
+    sample_digit_path = str(Path(__file__).resolve().with_name("sample_digit.jpg"))
     my_digit = load_my_digit(sample_digit_path)
 
     plt.figure(figsize=(4, 4))
@@ -415,6 +438,7 @@ if channels == 1 and H == 28 and W == 28:
     plt.title("My handwritten digit")
     plt.axis("off")
     plt.tight_layout()
+    save_current_figure("custom_digit")
     plt.show()
 
     print("Input data type:", my_digit.dtype)
@@ -452,6 +476,12 @@ if model_type == "cnn":
     plt.title("Example under investigation")
     plt.axis("off")
     plt.tight_layout()
+    save_current_figure("cnn_example_under_investigation")
     plt.show()
 
     plot_cnn_kernels_and_features(model, x_to_viz)
+
+if SAVE_FIGURES:
+    manifest_path = FIG_DIR / "mnist_classification_manifest.json"
+    manifest_path.write_text(json.dumps(FIGS_WRITTEN, indent=2), encoding="utf-8")
+    print(f"Saved {len(FIGS_WRITTEN)} figures to: {FIG_DIR}")
