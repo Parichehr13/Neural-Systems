@@ -18,7 +18,7 @@ Python workflow in this repository:
 - Learning rate: `gamma = 0.001`.
 
 ## Results
-The script exports three figures (`exercise10_fig_001` to `exercise10_fig_003`).
+The script exports three figures (`supervised_learning_fig_001` to `supervised_learning_fig_003`).
 
 ### Figure Timeline
 - **Fig 1**: training error versus epochs (convergence trend).
@@ -30,17 +30,17 @@ The script exports three figures (`exercise10_fig_001` to `exercise10_fig_003`).
 ### Visual Gallery
 **Figure 1 - Training Error Curve**
 <div align="center">
-  <img src="figures/exercise10_fig_001.png" alt="Supervised Learning - Fig 1" width="700" />
+  <img src="figures/supervised_learning_fig_001.png" alt="Supervised Learning - Fig 1" width="700" />
 </div>
 
 **Figure 2 - Actual vs Predicted Output**
 <div align="center">
-  <img src="figures/exercise10_fig_002.png" alt="Supervised Learning - Fig 2" width="700" />
+  <img src="figures/supervised_learning_fig_002.png" alt="Supervised Learning - Fig 2" width="700" />
 </div>
 
 **Figure 3 - Generalization Against Theoretical Curves**
 <div align="center">
-  <img src="figures/exercise10_fig_003.png" alt="Supervised Learning - Fig 3" width="700" />
+  <img src="figures/supervised_learning_fig_003.png" alt="Supervised Learning - Fig 3" width="700" />
 </div>
 
 Display width is normalized for readability; original figure resolution is unchanged.
@@ -57,3 +57,4 @@ Display width is normalized for readability; original figure resolution is uncha
 ### Generalization
 - The model reproduces the qualitative trend of theoretical open-loop behavior for both pressure sweeps.
 - This supports using the learned mapping for closed-loop-to-open-loop characteristic approximation.
+
