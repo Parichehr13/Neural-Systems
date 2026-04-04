@@ -3,11 +3,6 @@
 ## Objective
 Train and evaluate a two-layer neural network (one hidden layer) to model the nonlinear relationship between chemoreceptor firing rate (`fac`) and blood gas pressures (`Pao2`, `Paco2`).
 
-## Method Summary
-Two solution variants are included:
-- MATLAB pipeline (`supervised_learning.m`)
-- Python pipeline (`supervised_learning.py`)
-
 Python workflow in this repository:
 - load `chemo.mat` (`Pao2`, `Paco2`, `fac`),
 - train a 2-hidden-unit network with sigmoid activations by backpropagation,
