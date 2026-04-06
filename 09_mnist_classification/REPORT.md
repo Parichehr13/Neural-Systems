@@ -95,23 +95,14 @@ The confusion matrix helps identify which digit pairs are most frequently confus
 ### Figure 2 - Training and validation history
 ![Figure 2 - Training History](./figures/mnist_classification_fig_002_training_history.png)
 
-### Figure 3 - Validation confusion matrix (raw)
-![Figure 3 - Validation Confusion Raw](./figures/mnist_classification_fig_003_validation_confusion_raw.png)
+### Figure 3 - Test confusion matrix (normalized)
+![Figure 3 - Test Confusion Normalized](./figures/mnist_classification_fig_006_test_confusion_norm.png)
 
-### Figure 4 - Validation confusion matrix (normalized)
-![Figure 4 - Validation Confusion Normalized](./figures/mnist_classification_fig_004_validation_confusion_norm.png)
+### Figure 4 - Misclassified test examples
+![Figure 4 - Misclassified Examples](./figures/mnist_classification_fig_007_misclassified_examples.png)
 
-### Figure 5 - Test confusion matrix (raw)
-![Figure 5 - Test Confusion Raw](./figures/mnist_classification_fig_005_test_confusion_raw.png)
-
-### Figure 6 - Test confusion matrix (normalized)
-![Figure 6 - Test Confusion Normalized](./figures/mnist_classification_fig_006_test_confusion_norm.png)
-
-### Figure 7 - Misclassified test examples
-![Figure 7 - Misclassified Examples](./figures/mnist_classification_fig_007_misclassified_examples.png)
-
-### Figure 8 - Custom handwritten digit prediction input
-![Figure 8 - Custom Digit](./figures/mnist_classification_fig_008_custom_digit.png)
+### Figure 5 - Custom handwritten digit prediction input
+![Figure 5 - Custom Digit](./figures/mnist_classification_fig_008_custom_digit.png)
 
 ---
 
