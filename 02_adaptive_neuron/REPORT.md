@@ -1,4 +1,4 @@
-# Adaptive Neuron Report
+﻿# Adaptive Neuron Report
 
 ## Overview
 This module models a leaky integrate-and-fire neuron with:
@@ -72,12 +72,12 @@ Spike/reset event:
 ### Figure 1 - Constant-Current Comparison
 `V`, `Vt`, adaptation state `Pa`, and spike trains are compared directly between non-adapting and adapting dynamics.
 
-![Adaptive Neuron - Comparison](figures/exercise03_fig_001.png)
+![Adaptive Neuron - Comparison](figures/adaptive_neuron_fig_001_comparison.png)
 
 ### Figure 2 - Current-Discharge Rate (f-I)
 Steady-state firing rate is shown versus input current for both modes.
 
-![Adaptive Neuron - f-I](figures/exercise03_fig_002.png)
+![Adaptive Neuron - f-I](figures/adaptive_neuron_fig_002_fi_curve.png)
 
 ## Interpretation
 - Without adaptation, firing remains higher for sustained current.
@@ -104,5 +104,6 @@ python 02_adaptive_neuron/adaptive_neuron.py
 
 Figures are stored in:
 
-- `02_adaptive_neuron/figures/exercise03_fig_001.png`
-- `02_adaptive_neuron/figures/exercise03_fig_002.png`
+- `02_adaptive_neuron/figures/adaptive_neuron_fig_001_comparison.png`
+- `02_adaptive_neuron/figures/adaptive_neuron_fig_002_fi_curve.png`
+
