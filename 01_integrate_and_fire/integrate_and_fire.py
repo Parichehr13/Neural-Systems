@@ -4,6 +4,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
+from pathlib import Path
+import json
 
 
 # ============================================================
@@ -30,6 +32,24 @@ class Stage2Params:
     r: float = 10.0        # MOhm
     dt: float = 0.05       # ms
     tend: float = 300.0    # ms
+
+
+SAVE_FIGURES = True
+PROJECT_DIR = Path(__file__).resolve().parent
+FIG_DIR = PROJECT_DIR / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+FIGS_WRITTEN = []
+FIG_COUNTER = 0
+
+
+def save_current_figure(label):
+    global FIG_COUNTER
+    if not SAVE_FIGURES:
+        return
+    FIG_COUNTER += 1
+    fname = f"integrate_and_fire_fig_{FIG_COUNTER:03d}_{label}.png"
+    plt.savefig(FIG_DIR / fname, dpi=300, bbox_inches="tight")
+    FIGS_WRITTEN.append(fname)
 
 
 # ============================================================
@@ -134,6 +154,7 @@ def plot_stage1_variable_current(sim, p: Stage1Params):
 
     fig.suptitle("Stage 1 - Integrate and fire with constant threshold", fontsize=13)
     fig.tight_layout()
+    save_current_figure("stage1_dynamics")
     plt.show()
 
 
@@ -147,7 +168,7 @@ def stage1_fI_curve(currents, p: Stage1Params):
     return rates
 
 
-def plot_fI_curve(currents, rates, title):
+def plot_fI_curve(currents, rates, title, fig_label):
     plt.figure(figsize=(9, 6))
     plt.plot(currents, rates, 'o-k', linewidth=1.5, markersize=5)
     plt.xlabel("Input current (nA)")
@@ -155,6 +176,7 @@ def plot_fI_curve(currents, rates, title):
     plt.title(title)
     plt.grid(alpha=0.3)
     plt.tight_layout()
+    save_current_figure(fig_label)
     plt.show()
 
 
@@ -215,6 +237,7 @@ def plot_stage2_single_current(sim, I):
 
     fig.suptitle("Stage 2 - Integrate and fire with variable threshold", fontsize=13)
     fig.tight_layout()
+    save_current_figure("stage2_dynamics")
     plt.show()
 
 
@@ -253,7 +276,7 @@ def main():
 
     currents = np.arange(0.0, 11.0, 0.5)
     rates1 = stage1_fI_curve(currents, p1)
-    plot_fI_curve(currents, rates1, "Stage 1 - Current-frequency curve")
+    plot_fI_curve(currents, rates1, "Stage 1 - Current-frequency curve", "stage1_fi_curve")
 
     # --------------------------------------------------------
     # Stage 2
@@ -274,7 +297,12 @@ def main():
     plot_stage2_single_current(sim2_single, I_test)
 
     rates2 = stage2_fI_curve(currents, p2)
-    plot_fI_curve(currents, rates2, "Stage 2 - Current-frequency curve")
+    plot_fI_curve(currents, rates2, "Stage 2 - Current-frequency curve", "stage2_fi_curve")
+
+    if SAVE_FIGURES:
+        manifest_path = FIG_DIR / "integrate_and_fire_manifest.json"
+        manifest_path.write_text(json.dumps(FIGS_WRITTEN, indent=2), encoding="utf-8")
+        print(f"Saved {len(FIGS_WRITTEN)} figures to: {FIG_DIR}")
 
 
 if __name__ == "__main__":
