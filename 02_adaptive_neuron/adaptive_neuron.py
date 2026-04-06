@@ -1,207 +1,212 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
+from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-# # Adaptive neuron - Integrate and fire with adaptation (with adaptation)
-# 
-# Modify the previous *integrate and fire model* (Stage 2) by including an adaptation conductance $g_a$. 
-# 
-# * Evaluate the response to a constant input current in the presence and absence of the adaptation. Use as an adaptation time constant in the range: $\tau_{a}$ = 300 - 1000 ms and an adaptation potential Ea = -90 mV. The adaptation conductance can be varied (example of a possible value: $r\cdot g_{a,max}$ = 1 - 5) to evaluate its effect. Choose a small value for $\Delta p_{a}=0.03-0.2$.
-# 
-# * **Optional**: Repeat the test with different constant current values, and obtain the â€œcurrent-discharge rateâ€ plot.
-# 
+@dataclass
+class IFAdaptParams:
+    # Membrane / leak
+    E0: float = -65.0      # mV, resting/reset potential
+    r: float = 10.0        # MOhm
+    taum: float = 30.0     # ms
 
-# In[2]:
+    # Dynamic threshold (refractory effect)
+    Vtl: float = -55.0     # mV, long-term threshold
+    Vth: float = 50.0      # mV, threshold immediately after a spike
+    taut: float = 10.0     # ms
 
+    # Adaptation
+    Ea: float = -90.0      # mV
+    taua: float = 700.0    # ms (required range: 300-1000 ms)
+    dPa: float = 0.10      # adaptation increment at spike (0.03-0.2)
+    rgamax: float = 2.0    # dimensionless, r * ga,max (suggested 1-5)
 
-E0 = -65 #mV
-Ea = -90 #mV
-taum = 30 #ms (30-50ms)
-taut = 10 #ms
-taua = 1000 #ms (300-1000ms)
-r = 10 #Mohm
-C = taum/r
+    # Simulation
+    dt: float = 0.05       # ms
+    tend: float = 800.0    # ms
 
-dPa = 0.1 #(0.03-0.2)
-I = 4 #nA
-Vtl = -55 #mV
-Vth = 50 #mV
-gamax = 2/r #gamax= (1-5)/r
-g = 1/r 
+    @property
+    def C(self) -> float:
+        return self.taum / self.r   # nF (consistent with ms / MOhm)
 
-dt = 0.01
-tend = 800
-t = np.arange(0, tend+dt, dt) #ms
-L = len(t)
-V = np.zeros((L,))
-Vt = np.zeros((L,))
-Pa = np.zeros((L,))
+    @property
+    def gL(self) -> float:
+        return 1.0 / self.r         # uS
 
-V[0] = -65 #mV
-Pa[0] = 0
-Vt[0] = Vtl
+    @property
+    def gamax(self) -> float:
+        return self.rgamax / self.r # uS
 
 
-# In[3]:
+def simulate_if_adaptation(I_nA: float,
+                           p: IFAdaptParams,
+                           with_adaptation: bool = True):
+    """
+    Simulate an integrate-and-fire neuron with:
+    - dynamic threshold (refractory effect)
+    - optional spike-triggered adaptation conductance
+    """
+    t = np.arange(0.0, p.tend + p.dt, p.dt)
+    n = len(t)
+
+    V = np.empty(n)
+    Vt = np.empty(n)
+    Pa = np.empty(n)
+    spikes = np.zeros(n, dtype=int)
+
+    V[0] = p.E0
+    Vt[0] = p.Vtl
+    Pa[0] = 0.0
+
+    spike_idx = []
+
+    for k in range(n - 1):
+        # Adaptation conductance
+        ga = p.gamax * Pa[k] if with_adaptation else 0.0
+
+        # Equivalent membrane parameters
+        geq = p.gL + ga
+        Eeq = (p.gL * p.E0 + ga * p.Ea) / geq
+        req = 1.0 / geq
+        Vinf = Eeq + req * I_nA
+        tau_eff = p.C * req
+
+        # Exact exponential update
+        V[k + 1] = Vinf + (V[k] - Vinf) * np.exp(-p.dt / tau_eff)
+        Vt[k + 1] = p.Vtl + (Vt[k] - p.Vtl) * np.exp(-p.dt / p.taut)
+        Pa[k + 1] = Pa[k] * np.exp(-p.dt / p.taua)
+
+        # Spike event
+        if V[k + 1] >= Vt[k + 1]:
+            spikes[k + 1] = 1
+            spike_idx.append(k + 1)
+
+            V[k + 1] = p.E0
+            Vt[k + 1] = p.Vth
+
+            if with_adaptation:
+                Pa[k + 1] = Pa[k + 1] + p.dPa * (1.0 - Pa[k + 1])
+
+    spike_times = t[spike_idx]
+    isi = np.diff(spike_times) if len(spike_times) >= 2 else np.array([])
+
+    result = {
+        "t": t,
+        "V": V,
+        "Vt": Vt,
+        "Pa": Pa,
+        "spikes": spikes,
+        "spike_times": spike_times,
+        "isi_ms": isi,
+        "n_spikes": len(spike_idx),
+        "mean_rate_hz": 1000.0 / np.mean(isi) if len(isi) > 0 else 0.0,
+        "steady_rate_hz": (
+            1000.0 / np.mean(isi[-3:]) if len(isi) >= 3
+            else (1000.0 / isi[-1] if len(isi) > 0 else 0.0)
+        ),
+    }
+    return result
 
 
-idx_spike = []
-for k in np.arange(L-1):
-    ga = gamax * Pa[k]
-    geq = g+ga
-    E0tot = (g*E0+ga*Ea) /geq
-    rtot = 1/geq
-    Vinf = E0tot+rtot*I
-    tau = C*rtot # updating membrane time constant
-    V[k+1] = (V[k] - Vinf)*np.exp(-dt/tau) + Vinf
-    Vt[k+1] = (Vt[k] - Vtl)*np.exp(-dt/taut) + Vtl
-    Pa[k+1] = Pa[k]*np.exp(-dt/taua)  #Pa update between spikes
-    if V[k + 1] > Vt[k + 1]:
-        V[k + 1] = E0
-        Vt[k + 1] = Vth
-        Pa[k + 1] = Pa[k + 1] + dPa*(1 - Pa[k + 1]) #Pa update when spike arrived
-        idx_spike.append(k+1)
+def firing_rate_curve(currents_nA, p: IFAdaptParams, with_adaptation: bool = True):
+    """
+    Compute f-I curve using the steady-state firing rate
+    estimated from the last few ISIs.
+    """
+    rates = np.zeros_like(currents_nA, dtype=float)
 
-spikes = np.zeros((L,))
-spikes[idx_spike] = 1
+    for i, I in enumerate(currents_nA):
+        sim = simulate_if_adaptation(I, p, with_adaptation=with_adaptation)
+        rates[i] = sim["steady_rate_hz"]
+
+    return rates
 
 
-# In[4]:
+def plot_comparison(sim_no_adapt, sim_adapt, I_nA):
+    t = sim_adapt["t"]
+
+    fig, ax = plt.subplots(3, 1, figsize=(11, 9), sharex=True)
+
+    # Membrane potential
+    ax[0].plot(t, sim_no_adapt["V"], label="V without adaptation", linewidth=1.5)
+    ax[0].plot(t, sim_adapt["V"], label="V with adaptation", linewidth=1.5)
+    ax[0].plot(t, sim_adapt["Vt"], "--", label="Threshold Vt", linewidth=1.2)
+    ax[0].set_ylabel("mV")
+    ax[0].set_title(f"Response to constant current I = {I_nA:.2f} nA")
+    ax[0].legend()
+    ax[0].grid(alpha=0.3)
+
+    # Adaptation variable
+    ax[1].plot(t, sim_no_adapt["Pa"], label="Pa without adaptation", linewidth=1.5)
+    ax[1].plot(t, sim_adapt["Pa"], label="Pa with adaptation", linewidth=1.5)
+    ax[1].set_ylabel("Pa")
+    ax[1].set_ylim(0, 1.05)
+    ax[1].legend()
+    ax[1].grid(alpha=0.3)
+
+    # Spike trains
+    ax[2].vlines(sim_no_adapt["spike_times"], 0.00, 1.00, label="No adaptation", linewidth=1.2)
+    ax[2].vlines(sim_adapt["spike_times"], 0.00, 0.75, label="With adaptation", linewidth=1.2)
+    ax[2].set_ylabel("Spikes")
+    ax[2].set_xlabel("Time (ms)")
+    ax[2].set_ylim(0, 1.1)
+    ax[2].legend()
+    ax[2].grid(alpha=0.3)
+
+    fig.tight_layout()
+    return fig, ax
 
 
-plt.figure(figsize=(11,8))
-plt.subplot(2,2,1)
-plt.plot(t,V, 'k', t,Vt,'r')
-plt.legend(['V', 'Vt'], loc='upper right')
-plt.xlabel('time (ms)')
-plt.ylabel('(mV)')
-plt.title('Potential')
+def main():
+    # Parameters
+    p = IFAdaptParams(
+        taua=700.0,   # in the requested range
+        Ea=-90.0,
+        dPa=0.10,
+        rgamax=2.0,
+        dt=0.05,
+        tend=800.0
+    )
 
-plt.subplot(2,2,2)
-plt.plot(t,Pa, 'k')
-plt.ylim([0, 1])
-plt.xlabel('time (ms)')
-plt.title('Pa')
+    # ------------------------------------------------------------
+    # 1) Constant current response: WITHOUT vs WITH adaptation
+    # ------------------------------------------------------------
+    I_test = 4.0  # nA
 
-plt.subplot(2,2,3)
-plt.plot(t,spikes, 'k')
-plt.axis([0, t[-1], 0, 1.1])
-plt.xlabel('time (ms)')
-plt.title('Spikes')
+    sim_no_adapt = simulate_if_adaptation(I_test, p, with_adaptation=False)
+    sim_adapt = simulate_if_adaptation(I_test, p, with_adaptation=True)
 
-plt.tight_layout()
-plt.show()
+    print("=== SINGLE-CURRENT COMPARISON ===")
+    print(f"I = {I_test:.2f} nA")
+    print(f"Without adaptation -> spikes: {sim_no_adapt['n_spikes']}, "
+          f"steady-state rate: {sim_no_adapt['steady_rate_hz']:.2f} Hz")
+    print(f"With adaptation    -> spikes: {sim_adapt['n_spikes']}, "
+          f"steady-state rate: {sim_adapt['steady_rate_hz']:.2f} Hz")
 
+    plot_comparison(sim_no_adapt, sim_adapt, I_test)
 
-# In[5]:
+    # ------------------------------------------------------------
+    # 2) Optional current-discharge rate curve (f-I curve)
+    # ------------------------------------------------------------
+    currents = np.arange(0.0, 10.5, 0.5)
 
+    rates_no_adapt = firing_rate_curve(currents, p, with_adaptation=False)
+    rates_adapt = firing_rate_curve(currents, p, with_adaptation=True)
 
-II = np.arange(0, 11, 0.5)
-f = np.zeros(II.shape[0])
-for trial in np.arange(len(II)):
-    I = II[trial]
-    
-    V = np.zeros((L,))
-    Vt = np.zeros((L,))
-    Pa = np.zeros((L,))
-    V[0] = -65 #mV
-    Pa[0] = 0
-    Vt[0] = Vtl
-    idx_spike = []
-
-    for k in np.arange(L-1):
-        ga = gamax * Pa[k]
-        geq = g+ga
-        E0tot = (g*E0+ga*Ea) /geq
-        rtot = 1/geq
-        Vinf = E0tot+rtot*I
-        tau = C*rtot
-        V[k+1] = (V[k] - Vinf)*np.exp(-dt/tau) + Vinf
-        Vt[k+1] = (Vt[k] - Vtl)*np.exp(-dt/taut) + Vtl
-        Pa[k+1] = Pa[k]*np.exp(-dt/taua)
-        if V[k + 1] > Vt[k + 1]:
-            V[k + 1] = E0
-            Vt[k + 1] = Vth
-            Pa[k + 1] = Pa[k + 1] + dPa*(1 - Pa[k + 1])
-            idx_spike.append(k+1)
-    if len(idx_spike) > 1: # at least 2 spikes
-        T = t[idx_spike[-1]]-t[idx_spike[-2]]  
-        # frequency between the last two spikes; actually, the frequency changes over time.
-        f[trial] = 1/T*1000
-    else:
-        f[trial] = 0
-    #spikes = np.zeros((L,))
-    #spikes[idx_spike] = 1
-    
-    #plt.figure(figsize=(11,8))
-    #plt.subplot(1,2,1)
-    #plt.plot(t,V,'k',t,Vt,'r')
-    #plt.legend(['V', 'Vt'], loc='upper right')
-    #plt.title('Potential')
-    #plt.xlabel('time (ms)')
-    #plt.ylabel('(mV)')
-    #plt.axis([0, tend, E0-1, Vth+1])
-
-    #plt.subplot(1,2,2)
-    #plt.plot(t,Pa, 'k')
-    #plt.title('Pa')
-
-    #plt.tight_layout()
-    #plt.show()
+    plt.figure(figsize=(8, 5))
+    plt.plot(currents, rates_no_adapt, "o-", label="Without adaptation", linewidth=1.5)
+    plt.plot(currents, rates_adapt, "s-", label="With adaptation", linewidth=1.5)
+    plt.xlabel("Input current (nA)")
+    plt.ylabel("Steady-state firing rate (Hz)")
+    plt.title("Current-discharge rate (f-I curve)")
+    plt.grid(alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 
-# In[6]:
-
-
-plt.figure(figsize=(11,8))
-plt.plot(II,f,'--k*')
-plt.xlabel('Input current (nA)')
-plt.ylabel('Frequency (Hz)')
-plt.show()
-
-# If you want to save the obtained f-i relationship and compare it with other
-# models (Stages 1-2, save II and f variables also for Stages 1-2)
-
-# from scipy.io import savemat
-# savemat('if_discharge_rate_refr_period_adaptation.mat', {'II': II, 'f':f})
-
-#or use np.savetxt(...)
-
-
-# In[8]:
-
-
-# If you want to compare f-i relationship with other models (Stages 1-3)
-
-#from scipy.io import loadmat
-#data = loadmat('if_discharge_rate.mat')
-#II = np.squeeze(data['II'])
-#f0 = np.squeeze(data['f'])
-#data = loadmat('if_discharge_rate_refr_period.mat')
-#f1 = np.squeeze(data['f'])
-#data = loadmat('if_discharge_rate_refr_period_adaptation.mat')
-#f2 = np.squeeze(data['f'])
-
-#plt.figure(figsize=(11,8))
-#plt.plot(II, f0,'--k*')
-#plt.plot(II, f1,'--r*')
-#plt.plot(II, f2,'--b*')
-
-#plt.xlabel('Input current (nA)')
-#plt.ylabel('Frequency (Hz)')
-#plt.legend(['IF', 'IF+refr.period', 'IF+refr.period+adaptation'])
-#plt.show()
-
-
-# In[ ]:
-
-
-
-
-
+if __name__ == "__main__":
+    main()

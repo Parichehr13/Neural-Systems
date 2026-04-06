@@ -1,87 +1,99 @@
 # Adaptive Neuron Report
 
+## Overview
+This module models a leaky integrate-and-fire neuron with:
+
+- a dynamic threshold `Vt` (refractory behavior),
+- an optional spike-triggered adaptation conductance `ga`.
+
+The analysis compares neuron behavior with and without adaptation under constant current, then evaluates the current-discharge relationship (f-I curve).
+
 ## Objective
-This module extends the basic integrate-and-fire neuron by adding two biologically meaningful recovery mechanisms:
+The goal is to quantify how adaptation changes excitability and spike timing.
 
-- a dynamic threshold `Vt` (relative refractory behavior),
-- an adaptation conductance `ga` driven by a slow state variable `Pa`.
+The code evaluates:
 
-The goal is to evaluate how adaptation changes temporal spiking behavior and the current-frequency (I-F) relationship.
+- membrane and threshold dynamics,
+- adaptation-state dynamics,
+- spike timing differences between adapting and non-adapting cases,
+- steady-state firing rate as a function of input current.
 
-## Modeling Intuition
-The core idea is that each spike should make the neuron temporarily harder to fire again.
+## Model Equations
+At each step, the effective membrane terms are:
 
-- Dynamic threshold: immediately increases after a spike, then relaxes.
-- Adaptation conductance: increases after spikes and pulls membrane dynamics toward a more hyperpolarized equilibrium (`Ea`), reducing excitability.
+`ga = gamax * Pa` (when adaptation is enabled)
 
-Together, these terms reduce firing rate for sustained input and produce spike-frequency adaptation.
+`geq = gL + ga`
 
-## Governing Equations
-At each time step, the model computes:
+`Eeq = (gL*E0 + ga*Ea) / geq`
 
-```text
-ga   = gamax * Pa
-geq  = g + ga
-E0tot = (g*E0 + ga*Ea) / geq
-rtot = 1 / geq
-Vinf = E0tot + rtot*I
-tau_eff = C * rtot
-```
+`req = 1 / geq`
+
+`Vinf = Eeq + req*I`
+
+`tau_eff = C*req`
 
 State updates:
 
-```text
-V[k+1]  = (V[k]  - Vinf) * exp(-dt/tau_eff) + Vinf
-Vt[k+1] = (Vt[k] - Vtl)  * exp(-dt/taut)    + Vtl
-Pa[k+1] =  Pa[k]         * exp(-dt/taua)
-```
+`V[k+1] = Vinf + (V[k] - Vinf) * exp(-dt/tau_eff)`
 
-Spike/reset rule:
+`Vt[k+1] = Vtl + (Vt[k] - Vtl) * exp(-dt/taut)`
 
-```text
-if V[k+1] > Vt[k+1]:
-    V[k+1]  = E0
-    Vt[k+1] = Vth
-    Pa[k+1] = Pa[k+1] + dPa*(1 - Pa[k+1])
-```
+`Pa[k+1] = Pa[k] * exp(-dt/taua)`
 
-## Parameter Set (Code Values)
-- `E0 = -65 mV` (resting/reset potential)
-- `Ea = -90 mV` (adaptation reversal potential)
+Spike/reset event:
+
+- if `V[k+1] >= Vt[k+1]`, then `V[k+1] = E0`, `Vt[k+1] = Vth`,
+- with adaptation enabled: `Pa[k+1] = Pa[k+1] + dPa*(1 - Pa[k+1])`.
+
+## Parameter Set Used
+- `E0 = -65 mV`
+- `r = 10 MOhm`
 - `taum = 30 ms`
-- `taut = 10 ms` (threshold relaxation)
-- `taua = 1000 ms` (slow adaptation decay)
-- `r = 10 Mohm`, `g = 1/r`, `C = taum/r`
-- `Vtl = -55 mV`, `Vth = 50 mV`
-- `gamax = 2/r`
-- `dPa = 0.1`
-- simulation step `dt = 0.01 ms`
+- `Vtl = -55 mV`
+- `Vth = 50 mV`
+- `taut = 10 ms`
+- `Ea = -90 mV`
+- `taua = 700 ms`
+- `dPa = 0.10`
+- `rgamax = 2.0` (so `gamax = rgamax/r`)
+- `dt = 0.05 ms`
+- `tend = 800 ms`
 
-## Numerical Method
-- Time-discrete simulation with analytical exponential step updates for stable first-order state evolution.
-- Single-current simulation (`I = 4 nA`) for dynamics visualization.
-- I-F sweep over `I = 0:0.5:10.5 nA`.
-- Frequency estimate is computed from the last inter-spike interval when at least two spikes occur.
+## Numerical Procedure
+1. Simulate one constant-current case (`I = 4.0 nA`) in two modes:
+   - without adaptation,
+   - with adaptation.
+2. Build the f-I curve for currents `0.0` to `10.0 nA` (step `0.5 nA`).
+3. Estimate steady firing rate from the last ISI window (or last ISI when few spikes are present).
 
 ## Results
-Combined dynamics (`V`, `Vt`, `Pa`, spikes):
 
-![Adaptive Neuron - Dynamics](figures/exercise03_fig_001.png)
+### Figure 1 - Constant-Current Comparison
+`V`, `Vt`, adaptation state `Pa`, and spike trains are compared directly between non-adapting and adapting dynamics.
 
-Current-frequency curve:
+![Adaptive Neuron - Comparison](figures/exercise03_fig_001.png)
 
-![Adaptive Neuron - I-F](figures/exercise03_fig_002.png)
+### Figure 2 - Current-Discharge Rate (f-I)
+Steady-state firing rate is shown versus input current for both modes.
+
+![Adaptive Neuron - f-I](figures/exercise03_fig_002.png)
 
 ## Interpretation
-- `Pa` gradually accumulates during repetitive firing and decays slowly between spikes.
-- As `Pa` rises, `ga` increases, reducing effective membrane resistance (`rtot`) and changing equilibrium (`E0tot`) toward `Ea`.
-- This lowers effective excitability under sustained current, so firing rate is reduced relative to a non-adapting neuron.
-- The I-F curve remains monotonic, but adaptation shifts spiking behavior toward more physiologically plausible rate control.
+- Without adaptation, firing remains higher for sustained current.
+- With adaptation, `Pa` accumulates after spikes, increasing `ga` and reducing effective excitability.
+- This produces lower steady-state firing rates and stronger spike-frequency adaptation.
+- The f-I curve remains monotonic but shifts downward when adaptation is enabled.
 
-## Limitations
-- Frequency is estimated from only the final inter-spike interval (not full-window average rate).
-- No noise or synaptic input variability is modeled.
-- No direct side-by-side plotted comparison with non-adaptive model in this report.
+## Conclusion
+The adaptive extension adds realistic rate control to the integrate-and-fire neuron.
+
+Main outcomes:
+
+- dynamic threshold shapes short-term refractoriness,
+- adaptation conductance reduces sustained firing,
+- comparison plots clearly show the timing and rate differences,
+- the f-I analysis confirms adaptation-dependent gain modulation.
 
 ## Reproducibility
 Run:
@@ -92,4 +104,5 @@ python 02_adaptive_neuron/adaptive_neuron.py
 
 Figures are stored in:
 
-- `02_adaptive_neuron/figures/`
+- `02_adaptive_neuron/figures/exercise03_fig_001.png`
+- `02_adaptive_neuron/figures/exercise03_fig_002.png`
