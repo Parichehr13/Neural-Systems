@@ -1,264 +1,281 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # coding: utf-8
-
-# In[1]:
-
 
 import numpy as np
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
 
 
-# # Stage 1 - Integrate and fire neuron (with constant threshold value)
-# Consider the model of a single *integrate and fire* neuron, consisting of a capacitance C, a conductance g the resting potential E0 = Vreset, driven by a current i(t) (order of magnitude of the current 0-4 nA). Plot the membrane potential V, and the individual output spikes, using a variable current as input (for example, a of rectified sinusoids or a triangular shape). Both the existence of refractory time and adaptation are neglected. Other parameters: E0 = Vreset = - 65 mV; Vth = -50 mV; $\tau_{m}$ = 30 - 50 ms; r = 10 $M \Omega$.
+# ============================================================
+# PARAMETERS
+# ============================================================
 
-# In[2]:
-
-
-# Setting up parameters
-E0=-65  # resting potential (mV)
-tau=30  #time constant (ms)
-r=10  # membrane resistance (MOhm)
-g=1/r  # membrane conductance
-C=tau/r
-Vt=-55  # threshold potential (mV)
-
-dt=0.01
-tend = 300 # ms
-t=np.arange(0, tend+dt, dt)
-L=len(t)
-
-V=np.zeros((L, ))
-V[0]=-65  # setting up initial value (mV)
-
-Imax = 4.0  # maximum current amplitude (nA)
-I = np.abs(Imax*np.sin(np.pi*t/tend))  #np.abs(Imax*np.sin(np.pi*t/tend))
+@dataclass
+class Stage1Params:
+    E0: float = -65.0      # mV, resting/reset potential
+    Vth: float = -50.0     # mV, constant threshold
+    tau_m: float = 30.0    # ms
+    r: float = 10.0        # MOhm
+    dt: float = 0.05       # ms
+    tend: float = 300.0    # ms
 
 
-# In[3]:
+@dataclass
+class Stage2Params:
+    E0: float = -65.0      # mV, resting/reset potential
+    VtL: float = -55.0     # mV, long-term threshold
+    VtH: float = 0.0       # mV, threshold after spike
+    tau_m: float = 30.0    # ms
+    tau_t: float = 10.0    # ms
+    r: float = 10.0        # MOhm
+    dt: float = 0.05       # ms
+    tend: float = 300.0    # ms
 
 
-idx_spike=[]
-for k in np.arange(L-1):
-    Vinf = E0 + r*I[k]
-    # V[k+1] = (V[k] - Vinf)*np.exp(-dt/tau) + Vinf # exploiting analytical solution assuming constant current at each step
-    V[k+1] = V[k] + (Vinf - V[k])*dt/tau # Euler's method 
-    if V[k+1]> Vt:
-        # potential over threshold: reset value and count spikes
-        V[k+1]=E0
-        idx_spike.append(k+1)
-spikes = np.zeros((L,))
-spikes[idx_spike] = 1  # spikes train
+# ============================================================
+# UTILITY FUNCTIONS
+# ============================================================
 
-plt.figure(figsize=(11,8))
-plt.plot(t,I,'k')
-plt.xlabel('time (ms)')
-plt.ylabel('I (nA)')
-plt.title('Input current')
-
-plt.figure(figsize=(11,8))
-plt.plot(t,V,'k')
-plt.plot(t, Vt*np.ones(L,), 'r--')
-plt.legend(['V', 'Vt'])
-plt.ylabel('(mV)')
-plt.xlabel('time (ms)')
-plt.title('Potential')
-
-plt.figure(figsize=(11,8))
-plt.plot(t,spikes, 'k')
-plt.xlabel('time (ms)')
-plt.title('Spikes')
-plt.show()
+def create_time_vector(tend, dt):
+    return np.arange(0.0, tend + dt, dt)
 
 
-# In[6]:
+def rectified_sinusoid_current(t, Imax=4.0):
+    """
+    Example variable current for Stage 1.
+    """
+    return np.abs(Imax * np.sin(np.pi * t / t[-1]))
 
 
-II = np.arange(0, 11, 0.5) # constant current values (nA) to study
-n_trials = len(II)
-f = np.zeros((n_trials, ))
+def compute_rate_from_spikes(spike_times_ms):
+    """
+    Estimate firing rate from the last interspike interval.
+    Returns 0 if fewer than 2 spikes are present.
+    """
+    if len(spike_times_ms) < 2:
+        return 0.0
+    isi = spike_times_ms[-1] - spike_times_ms[-2]  # ms
+    return 1000.0 / isi
 
-for trial in np.arange(n_trials):
-    V=np.zeros((L, ))
-    V[0] = -65  #mV
-    idx_spike = []
-    I = II[trial]
-    
-    for k in np.arange(L-1):
-        Vinf = E0 + r*I
-        V[k+1] = (V[k] - Vinf) * np.exp(-dt/tau) + Vinf
-        if V[k+1] > Vt:
-            V[k+1] = E0
-            idx_spike.append(k+1)
 
-    if len(idx_spike) > 1:
-        T = t[idx_spike[-1]]-t[idx_spike[-2]]
-        f[trial]=1/T*1000
+def plot_spike_train(ax, spike_times, t_end, title="Spikes"):
+    ax.vlines(spike_times, 0, 1, color='k', linewidth=1.2)
+    ax.set_xlim(0, t_end)
+    ax.set_ylim(0, 1.1)
+    ax.set_xlabel("Time (ms)")
+    ax.set_title(title)
+    ax.grid(alpha=0.3)
+
+
+# ============================================================
+# STAGE 1: INTEGRATE-AND-FIRE WITH CONSTANT THRESHOLD
+# ============================================================
+
+def simulate_stage1(I, p: Stage1Params):
+    """
+    Simulate Stage 1 integrate-and-fire neuron.
+    I can be:
+    - scalar: constant current
+    - array of same length as time vector: time-varying current
+    """
+    t = create_time_vector(p.tend, p.dt)
+    n = len(t)
+
+    if np.isscalar(I):
+        I_vec = np.full(n, I, dtype=float)
     else:
-        f[trial] = 0
+        I_vec = np.asarray(I, dtype=float)
+        if len(I_vec) != n:
+            raise ValueError("Input current vector must have same length as time vector.")
 
-    spikes = np.zeros((L,))
-    spikes[idx_spike] = 1
-    
-    plt.figure(figsize=(11,8))
-    plt.subplot(1,2,1)
-    plt.plot(t,V,'k',t,Vt*np.ones(L,),'r')
-    plt.legend(['V', 'Vt'], loc='upper right')
-    plt.title('Potential')
-    plt.xlabel('time (ms)')
-    plt.ylabel('(mV)')
-    plt.axis([0, tend, E0-1, Vt+1])
+    V = np.zeros(n)
+    V[0] = p.E0
 
-    plt.subplot(1,2,2)
-    plt.plot(t,spikes, 'k')
-    plt.title('Spikes')
-    plt.xlabel('time (ms)')
-    plt.axis([0, t[-1], 0, 1.1])
-    
-    plt.suptitle('Trial no. {0} (const. input current of {1} nA)'.format(trial, I))
+    spike_idx = []
+
+    for k in range(n - 1):
+        V_inf = p.E0 + p.r * I_vec[k]
+
+        # exact discrete-time solution for constant current during dt
+        V[k + 1] = (V[k] - V_inf) * np.exp(-p.dt / p.tau_m) + V_inf
+
+        if V[k + 1] >= p.Vth:
+            V[k + 1] = p.E0
+            spike_idx.append(k + 1)
+
+    spike_times = t[spike_idx]
+
+    return {
+        "t": t,
+        "I": I_vec,
+        "V": V,
+        "spike_idx": spike_idx,
+        "spike_times": spike_times,
+        "rate_hz": compute_rate_from_spikes(spike_times)
+    }
+
+
+def plot_stage1_variable_current(sim, p: Stage1Params):
+    fig, ax = plt.subplots(3, 1, figsize=(11, 8), sharex=True)
+
+    ax[0].plot(sim["t"], sim["I"], 'k')
+    ax[0].set_ylabel("I (nA)")
+    ax[0].set_title("Input current")
+    ax[0].grid(alpha=0.3)
+
+    ax[1].plot(sim["t"], sim["V"], 'k', label="V")
+    ax[1].axhline(p.Vth, color='r', linestyle='--', label="Vth")
+    ax[1].set_ylabel("V (mV)")
+    ax[1].set_title("Membrane potential")
+    ax[1].legend()
+    ax[1].grid(alpha=0.3)
+
+    plot_spike_train(ax[2], sim["spike_times"], sim["t"][-1], title="Output spikes")
+
+    fig.suptitle("Stage 1 - Integrate and fire with constant threshold", fontsize=13)
+    fig.tight_layout()
     plt.show()
-    
-plt.figure(figsize=(11,8))
-plt.plot(II,f,'--k*')
-plt.xlabel('Input current (nA)')
-plt.ylabel('Frequency (Hz)')
-plt.title('Integrate and fire model with constant threshold potential')
-plt.show()
 
 
-# # Stage 2 - Integrate and fire neuron (with variable threshold value)
-# Modify the previous model by including the relative refractory period by means of a variable threshold. 
-# 1. Evaluate the response to a constant input current (e.g., i = 4 nA). 
-# 2. Repeat the test with different constant current values (e.g., from 0 nA to 11 nA), and obtain the graph *discharge current-frequency*, point by point.
-# 
-# Other recommended parameters: VtL = -55 mV; VtH = 0 mV; $\tau_{t}$ = 10 ms and see parameters of Stage 1.
+def stage1_fI_curve(currents, p: Stage1Params):
+    rates = np.zeros(len(currents))
 
-# In[7]:
+    for i, I in enumerate(currents):
+        sim = simulate_stage1(I, p)
+        rates[i] = sim["rate_hz"]
 
-
-E0=-65  #mV
-tau=30  #ms (10-30ms)
-taut=10  #ms   10 20 30
-r=10  #Mohm
-
-dt=0.01
-tend = 300
-t=np.arange(0, tend+dt, dt)
-L=len(t)
-
-Vtl=-55 #mV
-Vth= 0  #mV   -55  0 30
-g=1/r
-
-II = np.arange(0, 11, 0.5) # constant current values (nA) to study
+    return rates
 
 
-# In[8]:
-
-
-V=np.zeros((L, ))
-Vt=np.zeros((L, ))
-V[0] = -65  #mV
-Vt[0] = Vtl
-idx_spike = []
-I = II[5] # selecting one of the input currents available
-    
-for k in np.arange(L-1):
-    Vinf = E0 + r*I
-    V[k+1] = (V[k] - Vinf) * np.exp(-dt/tau) + Vinf
-    Vt[k+1] = (Vt[k] - Vtl) * np.exp(-dt/taut) + Vtl
-    if V[k+1] > Vt[k+1]:
-        V[k+1] = E0
-        Vt[k+1] = Vth
-        idx_spike.append(k+1)
-
-spikes = np.zeros((L,))
-spikes[idx_spike] = 1
-    
-plt.figure(figsize=(11,8))
-plt.subplot(1,2,1)
-plt.plot(t,V,'k',t,Vt,'r')
-plt.legend(['V', 'Vt'])
-plt.title('Potential')
-plt.xlabel('time (ms)')
-plt.ylabel('(mV)')
-plt.axis([0, tend, E0-1, Vth+1])
-
-plt.subplot(1,2,2)
-plt.plot(t,spikes, 'k')
-plt.title('Spikes')
-plt.xlabel('time (ms)')
-plt.axis([0, t[-1], 0, 1.1])
-
-plt.show()
-
-
-# In[9]:
-
-
-n_trials = len(II)
-f = np.zeros((n_trials, ))
-
-for trial in np.arange(n_trials):
-    V=np.zeros((L, ))
-    Vt=np.zeros((L, ))
-    V[0] = -65  #mV
-    Vt[0] = Vtl
-    idx_spike = []
-    I = II[trial]
-    
-    for k in np.arange(L-1):
-        Vinf = E0 + r*I
-        V[k+1] = (V[k] - Vinf) * np.exp(-dt/tau) + Vinf
-        Vt[k+1] = (Vt[k] - Vtl) * np.exp(-dt/taut) + Vtl
-        if V[k+1] > Vt[k+1]:
-            V[k+1] = E0
-            Vt[k+1] = Vth
-            idx_spike.append(k+1)
-
-    if len(idx_spike) > 1:
-        T = t[idx_spike[-1]]-t[idx_spike[-2]]
-        f[trial]=1/T*1000
-    else:
-        f[trial] = 0
-
-    spikes = np.zeros((L,))
-    spikes[idx_spike] = 1
-    
-    plt.figure(figsize=(11,8))
-    plt.subplot(1,2,1)
-    plt.plot(t,V,'k',t,Vt,'r')
-    plt.legend(['V', 'Vt'], loc='upper right')
-    plt.title('Potential')
-    plt.xlabel('time (ms)')
-    plt.ylabel('(mV)')
-    plt.axis([0, tend, E0-1, Vth+1])
-
-    plt.subplot(1,2,2)
-    plt.plot(t,spikes, 'k')
-    plt.title('Spikes')
-    plt.xlabel('time (ms)')
-    plt.axis([0, t[-1], 0, 1.1])
-    
-    plt.suptitle('Trial no. {0} (const. input current of {1} nA)'.format(trial, I))
+def plot_fI_curve(currents, rates, title):
+    plt.figure(figsize=(9, 6))
+    plt.plot(currents, rates, 'o-k', linewidth=1.5, markersize=5)
+    plt.xlabel("Input current (nA)")
+    plt.ylabel("Firing rate (Hz)")
+    plt.title(title)
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
     plt.show()
-    
-plt.figure(figsize=(11,8))
-plt.plot(II,f,'--k*')
-plt.xlabel('Input current (nA)')
-plt.ylabel('Frequency (Hz)')
-plt.title('Integrate and fire model with variable threshold potential')
-plt.show()
 
 
-# In[ ]:
+# ============================================================
+# STAGE 2: INTEGRATE-AND-FIRE WITH VARIABLE THRESHOLD
+# ============================================================
+
+def simulate_stage2(I, p: Stage2Params):
+    """
+    Simulate Stage 2 integrate-and-fire neuron with variable threshold.
+    I is assumed constant.
+    """
+    t = create_time_vector(p.tend, p.dt)
+    n = len(t)
+
+    V = np.zeros(n)
+    Vt = np.zeros(n)
+
+    V[0] = p.E0
+    Vt[0] = p.VtL
+
+    spike_idx = []
+
+    for k in range(n - 1):
+        V_inf = p.E0 + p.r * I
+
+        V[k + 1] = (V[k] - V_inf) * np.exp(-p.dt / p.tau_m) + V_inf
+        Vt[k + 1] = (Vt[k] - p.VtL) * np.exp(-p.dt / p.tau_t) + p.VtL
+
+        if V[k + 1] >= Vt[k + 1]:
+            V[k + 1] = p.E0
+            Vt[k + 1] = p.VtH
+            spike_idx.append(k + 1)
+
+    spike_times = t[spike_idx]
+
+    return {
+        "t": t,
+        "V": V,
+        "Vt": Vt,
+        "spike_idx": spike_idx,
+        "spike_times": spike_times,
+        "rate_hz": compute_rate_from_spikes(spike_times)
+    }
 
 
+def plot_stage2_single_current(sim, I):
+    fig, ax = plt.subplots(2, 1, figsize=(11, 7), sharex=True)
+
+    ax[0].plot(sim["t"], sim["V"], 'k', label="V")
+    ax[0].plot(sim["t"], sim["Vt"], 'r', label="Vt")
+    ax[0].set_ylabel("mV")
+    ax[0].set_title(f"Membrane potential and dynamic threshold (I = {I:.2f} nA)")
+    ax[0].legend()
+    ax[0].grid(alpha=0.3)
+
+    plot_spike_train(ax[1], sim["spike_times"], sim["t"][-1], title="Output spikes")
+
+    fig.suptitle("Stage 2 - Integrate and fire with variable threshold", fontsize=13)
+    fig.tight_layout()
+    plt.show()
 
 
+def stage2_fI_curve(currents, p: Stage2Params):
+    rates = np.zeros(len(currents))
 
-# In[ ]:
+    for i, I in enumerate(currents):
+        sim = simulate_stage2(I, p)
+        rates[i] = sim["rate_hz"]
+
+    return rates
 
 
+# ============================================================
+# MAIN SCRIPT
+# ============================================================
+
+def main():
+    # --------------------------------------------------------
+    # Stage 1
+    # --------------------------------------------------------
+    p1 = Stage1Params(
+        E0=-65.0,
+        Vth=-50.0,
+        tau_m=30.0,
+        r=10.0,
+        dt=0.05,
+        tend=300.0
+    )
+
+    t1 = create_time_vector(p1.tend, p1.dt)
+    I_var = rectified_sinusoid_current(t1, Imax=4.0)
+
+    sim1_var = simulate_stage1(I_var, p1)
+    plot_stage1_variable_current(sim1_var, p1)
+
+    currents = np.arange(0.0, 11.0, 0.5)
+    rates1 = stage1_fI_curve(currents, p1)
+    plot_fI_curve(currents, rates1, "Stage 1 - Current-frequency curve")
+
+    # --------------------------------------------------------
+    # Stage 2
+    # --------------------------------------------------------
+    p2 = Stage2Params(
+        E0=-65.0,
+        VtL=-55.0,
+        VtH=0.0,
+        tau_m=30.0,
+        tau_t=10.0,
+        r=10.0,
+        dt=0.05,
+        tend=300.0
+    )
+
+    I_test = 4.0
+    sim2_single = simulate_stage2(I_test, p2)
+    plot_stage2_single_current(sim2_single, I_test)
+
+    rates2 = stage2_fI_curve(currents, p2)
+    plot_fI_curve(currents, rates2, "Stage 2 - Current-frequency curve")
 
 
-
+if __name__ == "__main__":
+    main()
