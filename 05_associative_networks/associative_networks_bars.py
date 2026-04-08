@@ -1,210 +1,207 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+import json
+from pathlib import Path
 
-
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
+# ============================================================
+# HETERO-ASSOCIATIVE NETWORK (16 inputs, 4 outputs)
+# ============================================================
+
+FIG_DIR = Path(__file__).resolve().parent / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# # Hetero-associative networks
-# 
-# Modify the previous module by considering a network with 16 inputs and 4 outputs. Consider as a possible input pattern 4 bars on a 4x4 screen with different orientations. Each pixel of the screen can assume values Â± 1 (first build the 4x4 matrices that represent the 4 bars and display them as images). Transform the 4x4 matrix into a vector by writing a dedicated function. 
-# 
-# Consider a network similar to the one used in the previous module, but with 4 output neurons, and train it with Hebb's rule and with 4 input bars.
-# 
-# Consider a bar corrupted by noise as an input to the network (it is advisable to add noise to the vector). To display the input on a 4x4 screen, write a function that transforms a vector into a matrix and display it as an image.
-# * Analyze the ability of the network to "recognize" the bar as the variance of the noise and the slope of the output sigmoid vary. 
-# * Plot the "reconstructed" bar in a final figure, starting from the exit of the network.
-# 
-
-# In[2]:
+# ------------------------------------------------------------
+# Utility functions
+# ------------------------------------------------------------
+def mat_to_vec(M):
+    return M.reshape(-1)
 
 
-# defining auxiliary functions
-def from_mtx_to_array(I):
-    # I: ndarray (N,N)
-    nrows = I.shape[0]
-    V = []
-    for i in np.arange(nrows):
-        V.extend(I[i,:])
-    return np.array(V)
-
-def from_array_to_mtx(V):
-    # V: ndarray (N**2)
-    nrows = int(np.sqrt(V.size))
-    print(nrows)
-    I = np.zeros((nrows, nrows))
-    for i in np.arange(nrows):
-        start = i*nrows
-        stop = i*nrows+nrows
-        I[i,:] = V[start:stop]
-    return I
+def vec_to_mat(v, n=4):
+    return v.reshape(n, n)
 
 
-# In[3]:
+def normalize(v):
+    nrm = np.linalg.norm(v)
+    return v if nrm == 0 else v / nrm
 
 
-# defining input images
-I1_no_noise = -np.ones((4,4)) 
-I1_no_noise[1,:] = -I1_no_noise[1,:] 
-I2_no_noise = -np.ones((4,4)) 
-I2_no_noise[:,1] = -I2_no_noise[:,1] 
-I3_no_noise = -np.ones((4,4))+2*np.eye(4) 
-I4_no_noise = np.flipud(I3_no_noise)
-
-plt.figure()
-plt.subplot(2,2,1)
-plt.imshow(I1_no_noise)
-plt.subplot(2,2,2)
-plt.imshow(I2_no_noise)
-plt.subplot(2,2,3)
-plt.imshow(I3_no_noise)
-plt.subplot(2,2,4)
-plt.imshow(I4_no_noise)
-plt.show()
-
-# input normalization
-V1_no_noise = from_mtx_to_array(I1_no_noise)/4 
-V2_no_noise = from_mtx_to_array(I2_no_noise)/4
-V3_no_noise = from_mtx_to_array(I3_no_noise)/4
-V4_no_noise = from_mtx_to_array(I4_no_noise)/4
-
-all_V = np.array([V1_no_noise, V2_no_noise, V3_no_noise, V4_no_noise]).T # shape of (16,4)
-Y = np.eye(4)
-
-# network training
-W = np.matmul(Y, all_V.T)  
-
-# network output (without noise)
-Y1_no_noise = np.matmul(W, V1_no_noise)
-Y2_no_noise = np.matmul(W, V2_no_noise)
-Y3_no_noise = np.matmul(W, V3_no_noise)
-Y4_no_noise = np.matmul(W, V4_no_noise)
+def sigmoid(u, k):
+    return 1.0 / (1.0 + np.exp(-k * u))
 
 
-# In[4]:
+def add_noise_and_normalize(v, sigma, rng):
+    v_noisy = v + sigma * rng.standard_normal(v.shape)
+    return normalize(v_noisy)
 
 
-# defining noisy input images
-sigma = 0.3
-I1_noise = I1_no_noise + sigma*np.random.randn(4,4)
-I2_noise = I2_no_noise + sigma*np.random.randn(4,4)
-I3_noise = I3_no_noise + sigma*np.random.randn(4,4)
-I4_noise = I4_no_noise + sigma*np.random.randn(4,4)
-
-plt.figure()
-plt.subplot(2,2,1)
-plt.imshow(I1_noise)
-plt.subplot(2,2,2)
-plt.imshow(I2_noise)
-plt.subplot(2,2,3)
-plt.imshow(I3_noise)
-plt.subplot(2,2,4)
-plt.imshow(I4_noise)
-plt.show()
-
-V1_noise = from_mtx_to_array(I1_noise)
-V2_noise = from_mtx_to_array(I2_noise)
-V3_noise = from_mtx_to_array(I3_noise)
-V4_noise = from_mtx_to_array(I4_noise)
-
-# input normalization
-V1_noise = V1_noise/np.linalg.norm(V1_noise)
-V2_noise = V2_noise/np.linalg.norm(V2_noise)
-V3_noise = V3_noise/np.linalg.norm(V3_noise)
-V4_noise = V4_noise/np.linalg.norm(V4_noise)
-
-# network output (with noise)
-Y1_noise = np.matmul(W, V1_noise)
-Y2_noise = np.matmul(W, V2_noise)
-Y3_noise = np.matmul(W, V3_noise)
-Y4_noise = np.matmul(W, V4_noise)
+def reconstruct_from_output(y, patterns_raw):
+    """Reconstruct pattern from output activations and stored templates."""
+    P = np.column_stack([mat_to_vec(p) for p in patterns_raw])  # (16, 4)
+    v_rec = P @ y
+    return vec_to_mat(v_rec, 4)
 
 
-# In[5]:
+def save_fig(fig, filename, written):
+    fig.savefig(FIG_DIR / filename, dpi=300, bbox_inches="tight")
+    written.append(filename)
+    plt.close(fig)
 
 
-# sigmoid-activated network output (with noise) - k = 20
-k = 20 
-Y1_sig_no_noise = 1/(1+np.exp(-k*(Y1_no_noise - 0.5)))
-Y2_sig_no_noise = 1/(1+np.exp(-k*(Y2_no_noise - 0.5)))
-Y3_sig_no_noise = 1/(1+np.exp(-k*(Y3_no_noise - 0.5)))
-Y4_sig_no_noise = 1/(1+np.exp(-k*(Y4_no_noise - 0.5)))
-
-Y1_sig_noise = 1./(1+np.exp(-k*(Y1_noise - 0.5)))
-Y2_sig_noise = 1./(1+np.exp(-k*(Y2_noise - 0.5)))
-Y3_sig_noise = 1./(1+np.exp(-k*(Y3_noise - 0.5)))
-Y4_sig_noise = 1./(1+np.exp(-k*(Y4_noise - 0.5)))
+# ------------------------------------------------------------
+# Reproducibility
+# ------------------------------------------------------------
+rng = np.random.default_rng(42)
+written_files = []
 
 
-# In[7]:
+# ------------------------------------------------------------
+# 1. Build 4 bars on a 4x4 grid
+# ------------------------------------------------------------
+I1 = -np.ones((4, 4))                  # horizontal
+I1[1, :] = 1
+
+I2 = -np.ones((4, 4))                  # vertical
+I2[:, 1] = 1
+
+I3 = -np.ones((4, 4))                  # main diagonal
+np.fill_diagonal(I3, 1)
+
+I4 = -np.ones((4, 4))                  # anti-diagonal
+I4[np.arange(4), np.arange(3, -1, -1)] = 1
+
+patterns = [I1, I2, I3, I4]
+pattern_names = ["Horizontal", "Vertical", "Main diagonal", "Anti-diagonal"]
+
+fig, axes = plt.subplots(1, 4, figsize=(10, 3))
+for i, ax in enumerate(axes):
+    ax.imshow(patterns[i], cmap="gray", vmin=-1, vmax=1)
+    ax.set_title(pattern_names[i], fontsize=10)
+    ax.axis("off")
+fig.suptitle("Set B - Clean input bars", fontsize=13)
+fig.tight_layout()
+save_fig(fig, "associative_networks_fig_004_setB_inputs.png", written_files)
 
 
-# visualizations
-print('#'*10+' First input')
-print('linear-activated without noise:', Y1_no_noise)
-print('linear-activated with noise:', Y1_noise)
-print('sigmoid-activated without noise:', Y1_sig_no_noise)
-print('sigmoid-activated with noise:', Y1_sig_noise)
+# ------------------------------------------------------------
+# 2. Convert bars to normalized vectors and train with Hebb
+# ------------------------------------------------------------
+X = np.column_stack([normalize(mat_to_vec(p)) for p in patterns])  # (16, 4)
+Y = np.eye(4)                                                       # one-hot outputs
+W = Y @ X.T                                                         # Hebbian hetero-associative map
 
 
-I_output = Y1_sig_noise[0]*I1_no_noise + Y1_sig_noise[1]*I2_no_noise +Y1_sig_noise[3]*I3_no_noise + Y1_sig_noise[3]*I4_no_noise #reconstructed image
+# ------------------------------------------------------------
+# 3. One noisy realization for visualization
+# ------------------------------------------------------------
+sigma_demo = 0.35
+k_demo = 10
 
-plt.figure()
-plt.subplot(1,2,1)
-plt.imshow(I1_noise)
-plt.subplot(1,2,2)
-plt.imshow(I_output)
-plt.show()
+X_noisy = np.column_stack([add_noise_and_normalize(X[:, i], sigma_demo, rng) for i in range(4)])
 
-print('#'*10+' Second input')
-print('linear-activated without noise:', Y2_no_noise)
-print('linear-activated with noise:', Y2_noise)
-print('sigmoid-activated without noise:', Y2_sig_no_noise)
-print('sigmoid-activated with noise:', Y2_sig_noise)
-
-I_output = Y2_sig_noise[0]*I1_no_noise + Y2_sig_noise[1]*I2_no_noise +Y2_sig_noise[2]*I3_no_noise + Y2_sig_noise[3]*I4_no_noise
-plt.figure()
-plt.subplot(1,2,1)
-plt.imshow(I2_noise)
-plt.subplot(1,2,2)
-plt.imshow(I_output)
-plt.show()
-
-print('#'*10+' Third input')
-print('linear-activated without noise:', Y3_no_noise)
-print('linear-activated with noise:', Y3_noise)
-print('sigmoid-activated without noise:', Y3_sig_no_noise)
-print('sigmoid-activated with noise:', Y3_sig_noise)
-
-I_output = Y3_sig_noise[0]*I1_no_noise + Y3_sig_noise[1]*I2_no_noise + Y3_sig_noise[2]*I3_no_noise + Y3_sig_noise[3]*I4_no_noise
-plt.figure()
-plt.subplot(1,2,1)
-plt.imshow(I3_noise)
-plt.subplot(1,2,2)
-plt.imshow(I_output)
-plt.show()
-
-print('#'*10+' Fourth input')
-print('linear-activated without noise:', Y4_no_noise)
-print('linear-activated with noise:', Y4_noise)
-print('sigmoid-activated without noise:', Y4_sig_no_noise)
-print('sigmoid-activated with noise:', Y4_sig_noise)
-
-I_output = Y4_sig_noise[0]*I1_no_noise + Y4_sig_noise[1]*I2_no_noise + Y4_sig_noise[2]*I3_no_noise + Y4_sig_noise[3]*I4_no_noise
-plt.figure()
-plt.subplot(1,2,1)
-plt.imshow(I4_noise)
-plt.subplot(1,2,2)
-plt.imshow(I_output)
-plt.show()
+fig, axes = plt.subplots(1, 4, figsize=(10, 3))
+for i, ax in enumerate(axes):
+    ax.imshow(vec_to_mat(X_noisy[:, i], 4), cmap="gray")
+    ax.set_title(pattern_names[i], fontsize=10)
+    ax.axis("off")
+fig.suptitle(f"Set B - Noisy inputs (sigma={sigma_demo:.2f})", fontsize=13)
+fig.tight_layout()
+save_fig(fig, "associative_networks_fig_005_setB_noisy_inputs.png", written_files)
 
 
-# In[ ]:
+# ------------------------------------------------------------
+# 4. Reconstruction demo for each noisy bar
+# ------------------------------------------------------------
+for i in range(4):
+    y_linear = W @ X_noisy[:, i]
+    y_sigmoid = sigmoid(y_linear, k_demo)
+    I_recon = reconstruct_from_output(y_sigmoid, patterns)
+
+    print("#" * 12 + f" Pattern {i + 1}")
+    print("Linear output:", np.round(y_linear, 3))
+    print(f"Sigmoid output (k={k_demo}):", np.round(y_sigmoid, 3))
+    print(f"Predicted class: neuron {np.argmax(y_sigmoid) + 1}")
+
+    fig, axes = plt.subplots(1, 3, figsize=(12, 3.8))
+
+    axes[0].imshow(vec_to_mat(X_noisy[:, i], 4), cmap="gray")
+    axes[0].set_title("Noisy input")
+    axes[0].axis("off")
+
+    axes[1].bar(np.arange(1, 5), y_sigmoid, color="black")
+    axes[1].set_ylim(0, 1.05)
+    axes[1].set_xticks(np.arange(1, 5))
+    axes[1].set_xlabel("Output neuron")
+    axes[1].set_ylabel("Activation")
+    axes[1].set_title(f"Sigmoid output (k={k_demo})")
+    axes[1].grid(axis="y", alpha=0.3)
+
+    axes[2].imshow(I_recon, cmap="gray")
+    axes[2].set_title("Reconstructed bar")
+    axes[2].axis("off")
+
+    fig.tight_layout()
+    save_fig(fig, f"associative_networks_fig_00{6 + i}_setB_recon{i + 1}.png", written_files)
 
 
+# ------------------------------------------------------------
+# 5. Recognition performance vs noise and sigmoid slope
+# ------------------------------------------------------------
+sigma_values = np.linspace(0.0, 1.0, 11)
+k_values = [1, 2, 5, 10, 20, 40]
+n_trials = 200
+
+accuracy = np.zeros((len(k_values), len(sigma_values)))
+
+for ik, k in enumerate(k_values):
+    for isg, sigma in enumerate(sigma_values):
+        correct = 0
+        total = 0
+
+        for label in range(4):
+            x_ref = X[:, label]
+            for _ in range(n_trials):
+                x_noisy = add_noise_and_normalize(x_ref, sigma, rng)
+                y = sigmoid(W @ x_noisy, k)
+                pred = np.argmax(y)
+                if pred == label:
+                    correct += 1
+                total += 1
+
+        accuracy[ik, isg] = correct / total
+
+fig = plt.figure(figsize=(9, 5))
+im = plt.imshow(
+    accuracy,
+    aspect="auto",
+    origin="lower",
+    cmap="gray",
+    extent=[sigma_values[0], sigma_values[-1], 0, len(k_values) - 1],
+)
+plt.yticks(np.arange(len(k_values)), labels=k_values)
+plt.xlabel("Noise standard deviation")
+plt.ylabel("Sigmoid slope k")
+plt.title("Set B - Recognition accuracy vs noise and sigmoid slope")
+plt.colorbar(im, label="Accuracy")
+plt.tight_layout()
+save_fig(fig, "associative_networks_fig_010_setB_accuracy_heatmap.png", written_files)
+
+print("\nRecognition accuracy table:")
+for ik, k in enumerate(k_values):
+    print(f"k = {k:>2}: {np.round(accuracy[ik], 3)}")
 
 
+# ------------------------------------------------------------
+# 6. Manifest
+# ------------------------------------------------------------
+manifest_path = FIG_DIR / "associative_networks_setB_manifest.json"
+manifest_path.write_text(json.dumps(written_files, indent=2), encoding="utf-8")
 
+print("\nSaved Set B figures:")
+for f in written_files:
+    print(f"- {f}")

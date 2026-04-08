@@ -19,8 +19,9 @@ Bar-plot comparisons for three input patterns:
 ### Model Used in Code
 - Four 4x4 bar-like patterns converted to 16-element vectors.
 - Training: `W = Y * X^T` with 4 outputs.
-- Noisy inputs + sigmoid readout (`k=20`).
+- Noisy inputs + sigmoid readout (`k=10` for reconstruction demo).
 - Reconstructed image from weighted clean templates.
+- Performance sweep versus noise standard deviation and sigmoid slope.
 
 ### Results
 Pattern visualization, noisy inputs, and reconstructions:
@@ -31,5 +32,6 @@ Pattern visualization, noisy inputs, and reconstructions:
 ![Set B - Recon 2](figures/associative_networks_fig_007_setB_recon2.png)
 ![Set B - Recon 3](figures/associative_networks_fig_008_setB_recon3.png)
 ![Set B - Recon 4](figures/associative_networks_fig_009_setB_recon4.png)
+![Set B - Accuracy Heatmap](figures/associative_networks_fig_010_setB_accuracy_heatmap.png)
 
 
