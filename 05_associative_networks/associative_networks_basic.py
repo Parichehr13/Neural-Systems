@@ -1,138 +1,147 @@
-﻿ !/usr/bin/env python
-  coding: utf-8
+#!/usr/bin/env python
+# coding: utf-8
 
-  In[1]:
+import json
+from pathlib import Path
 
-
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
-    Hetero-associative networks
-  
-  Build three binary vectors (with values Â± 1) of 10 elements. Each of them represents a possible input pattern. Normalize the vectors so that each of them has unitary norm and arrange them along three columns of an X matrix. Consider a hetero-associative network with 10 inputs and 3 output neurons. The output neurons have activation values between 0 and 1.
-  
-  Train the network with Hebb's rule, so that at the first input pattern (= first column of X) only the first output neuron is active, at the second input pattern only the second neuron is active, and in the presence of the third input pattern only the third neuron is active (therefore the activation of the first three neurons corresponds to the recognition of the relative pattern).
-  
-  Give one of the three patterns of your choice as input to the network, corrupted by the addition of Gaussian noise with a null mean value and assigned variance (after noise addiction the vector must be normalized again). Calculate the network output:
-  * assuming linear neurons.
-  * assuming that neurons have a sigmoidal function with output between 0 and 1 and central value = 0.5. Consider the possibility of choosing the steepness of slope of the sigmoid. Study the performance of the network as the slope of the sigmoid varies.
-  
-
-  In[2]:
-
-
-  inputs
-X_no_noise = 2*np.round(np.random.rand(10,3)) - 1
-X_no_noise = X_no_noise/np.sqrt(10)
-
-  inputs with noise
-sigma = 0.1
-X_noise = X_no_noise + sigma*np.random.randn(10,3)
-X_noise[:,0]= X_noise[:,0]/np.linalg.norm(X_noise[:,0])
-X_noise[:,1]= X_noise[:,1]/np.linalg.norm(X_noise[:,1])
-X_noise[:,2]= X_noise[:,2]/np.linalg.norm(X_noise[:,2])
-
-Y = np.eye(3,3)
-  network training (on inputs without noise)
-W = np.matmul(Y, X_no_noise.T)
-
-  network output (without noise)
-Y1_no_noise = np.matmul(W, X_no_noise[:,0].reshape((X_no_noise.shape[0], 1)))
-Y2_no_noise = np.matmul(W, X_no_noise[:,1].reshape((X_no_noise.shape[0], 1)))
-Y3_no_noise = np.matmul(W, X_no_noise[:,2].reshape((X_no_noise.shape[0], 1)))
-
-  network output (with noise)
-Y1_noise = np.matmul(W, X_noise[:,0].reshape((X_noise.shape[0], 1)))
-Y2_noise = np.matmul(W, X_noise[:,1].reshape((X_noise.shape[0], 1)))
-Y3_noise = np.matmul(W, X_noise[:,2].reshape((X_noise.shape[0], 1)))
-
-  sigmoid-activated network output - k = 10
-k = 10
-Y1_sig_no_noise = 1./(1+np.exp(-k*(Y1_no_noise - 0.5)))
-Y2_sig_no_noise = 1./(1+np.exp(-k*(Y2_no_noise - 0.5)))
-Y3_sig_no_noise = 1./(1+np.exp(-k*(Y3_no_noise - 0.5)))
-
-Y1_sig_noise = 1./(1+np.exp(-k*(Y1_noise - 0.5)))
-Y2_sig_noise = 1./(1+np.exp(-k*(Y2_noise - 0.5)))
-Y3_sig_noise = 1./(1+np.exp(-k*(Y3_noise - 0.5)))
-
-  sigmoid-activated network output - k = 20
-k = 20
-Y1_sig_no_noise_ = 1./(1+np.exp(-k*(Y1_no_noise - 0.5)))
-Y2_sig_no_noise_ = 1./(1+np.exp(-k*(Y2_no_noise - 0.5)))
-Y3_sig_no_noise_ = 1./(1+np.exp(-k*(Y3_no_noise - 0.5)))
-
-Y1_sig_noise_ = 1./(1+np.exp(-k*(Y1_noise - 0.5)))
-Y2_sig_noise_ = 1./(1+np.exp(-k*(Y2_noise - 0.5)))
-Y3_sig_noise_ = 1./(1+np.exp(-k*(Y3_noise - 0.5)))
+# ============================================================
+# Hetero-associative network (10 inputs -> 3 outputs)
+# ============================================================
+# Task summary:
+# - Build 3 binary input patterns in {-1,+1}, length 10
+# - Normalize patterns and arrange as columns of X
+# - Train with Hebbian hetero-associative rule: W = Y X^T
+# - Corrupt one pattern (or all patterns) with Gaussian noise and renormalize
+# - Compute outputs with:
+#   1) linear neurons
+#   2) sigmoid neurons in [0,1], centered at 0.5, for multiple slopes k
 
 
-  In[3]:
+FIG_DIR = Path(__file__).resolve().parent / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+
+RNG = np.random.default_rng(42)
 
 
-def compare_neuron_values(Y_no_noise, Y_noise, Y_sig_no_noise, Y_sig_noise, Y_sig_no_noise_, Y_sig_noise_):
-      auxillary function to plot network output as bars
-    plt.figure(figsize=(11,7))
-    for i in np.arange(3):
-        plt.subplot(1,3,i+1)
-        plt.bar(np.arange(6),
-                [Y_no_noise[i ,0], 
-                 Y_noise[i ,0], 
-                 Y_sig_no_noise[i ,0], 
-                 Y_sig_noise[i ,0],
-                 Y_sig_no_noise_[i ,0], 
-                 Y_sig_noise_[i ,0]],
-               width=0.25, facecolor='k')
-        plt.ylim([-1, 1])
-        plt.axhline(y=0, c='r')
-        plt.xticks(np.arange(6), ['no noise',
-                   'noise',
-                   'sigmoided (k=10) no noise',
-                   'sigmoided (k=10) noise',
-                   'sigmoided (k=20) no noise',
-                   'sigmoided (k=20) noise',], rotation=45, 
-                  horizontalalignment='right')
-        plt.title('Neuron: {0}'.format(i))
-    plt.tight_layout()
-    plt.show()
-    
-print(' '*10+' First input')
-print('linear-activated without noise:', Y1_no_noise)
-print('linear-activated with noise:', Y1_noise)
-print('sigmoid-activated (k=10) without noise:', Y1_sig_no_noise)
-print('sigmoid-activated (k=10) with noise:', Y1_sig_noise)
-print('sigmoid-activated (k=20) without noise:', Y1_sig_no_noise_)
-print('sigmoid-activated (k=20) with noise:', Y1_sig_noise_)
-compare_neuron_values(Y1_no_noise, Y1_noise, 
-                      Y1_sig_no_noise, Y1_sig_noise,
-                      Y1_sig_no_noise_, Y1_sig_noise_) 
-print(' '*10+' Second input')
-print('linear-activated without noise:', Y2_no_noise)
-print('linear-activated with noise:', Y2_noise)
-print('sigmoid-activated (k=10) without noise:', Y2_sig_no_noise)
-print('sigmoid-activated (k=10) with noise:', Y2_sig_noise)
-print('sigmoid-activated (k=20) without noise:', Y2_sig_no_noise_)
-print('sigmoid-activated (k=20) with noise:', Y2_sig_noise_)
-compare_neuron_values(Y2_no_noise, Y2_noise, 
-                      Y2_sig_no_noise, Y2_sig_noise,
-                      Y2_sig_no_noise_, Y2_sig_noise_)  
-print(' '*10+' Third input')
-print('linear-activated without noise:', Y3_no_noise)
-print('linear-activated with noise:', Y3_noise)
-print('sigmoid-activated (k=10) without noise:', Y3_sig_no_noise)
-print('sigmoid-activated (k=10) with noise:', Y3_sig_noise)
-print('sigmoid-activated (k=20) without noise:', Y3_sig_no_noise_)
-print('sigmoid-activated (k=20) with noise:', Y3_sig_noise_)
-compare_neuron_values(Y3_no_noise, Y3_noise, 
-                      Y3_sig_no_noise, Y3_sig_noise,
-                      Y3_sig_no_noise_, Y3_sig_noise_) 
+def sigmoid(u, k):
+    """Sigmoid in [0,1], centered at 0.5 as requested."""
+    return 1.0 / (1.0 + np.exp(-k * (u - 0.5)))
 
 
-  In[ ]:
+def normalize_columns(x):
+    """Normalize each column to unit norm."""
+    x = x.copy().astype(float)
+    for j in range(x.shape[1]):
+        nrm = np.linalg.norm(x[:, j])
+        if nrm > 0:
+            x[:, j] /= nrm
+    return x
 
 
+def plot_pattern_outputs(
+    pattern_idx,
+    y_target,
+    y_lin_clean,
+    y_lin_noisy,
+    y_sig10_clean,
+    y_sig10_noisy,
+    y_sig20_clean,
+    y_sig20_noisy,
+):
+    """Bar comparison for one input pattern across three output neurons."""
+    fig, ax = plt.subplots(figsize=(11, 6))
+
+    x = np.arange(3)  # 3 output neurons
+    width = 0.11
+
+    ax.bar(x - 3.0 * width, y_target, width=width, label="Target", color="#111111")
+    ax.bar(x - 2.0 * width, y_lin_clean, width=width, label="Linear clean", color="#1f77b4")
+    ax.bar(x - 1.0 * width, y_lin_noisy, width=width, label="Linear noisy", color="#4f9dd9")
+    ax.bar(x + 0.0 * width, y_sig10_clean, width=width, label="Sigmoid k=10 clean", color="#ff7f0e")
+    ax.bar(x + 1.0 * width, y_sig10_noisy, width=width, label="Sigmoid k=10 noisy", color="#ffb066")
+    ax.bar(x + 2.0 * width, y_sig20_clean, width=width, label="Sigmoid k=20 clean", color="#2ca02c")
+    ax.bar(x + 3.0 * width, y_sig20_noisy, width=width, label="Sigmoid k=20 noisy", color="#6ecf6e")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(["Neuron 1", "Neuron 2", "Neuron 3"])
+    ax.set_ylim(-0.15, 1.15)
+    ax.set_ylabel("Output")
+    ax.set_title(f"Set A - Pattern {pattern_idx + 1}")
+    ax.grid(axis="y", alpha=0.3)
+    ax.legend(ncol=2, fontsize=9)
+    fig.tight_layout()
+    return fig
 
 
+def main():
+    # --------------------------------------------------------
+    # 1) Build binary patterns and normalize
+    # --------------------------------------------------------
+    x_clean = 2 * np.round(RNG.random((10, 3))) - 1  # {-1,+1}
+    x_clean = normalize_columns(x_clean)
+
+    # Desired one-hot outputs
+    y_target_all = np.eye(3)
+
+    # --------------------------------------------------------
+    # 2) Hebbian hetero-associative training
+    # --------------------------------------------------------
+    # W = sum_p y_p x_p^T = Y X^T
+    w = y_target_all @ x_clean.T
+
+    # --------------------------------------------------------
+    # 3) Clean/noisy test patterns
+    # --------------------------------------------------------
+    sigma = 0.2
+    x_noisy = x_clean + sigma * RNG.standard_normal((10, 3))
+    x_noisy = normalize_columns(x_noisy)
+
+    # Linear outputs
+    y_clean = w @ x_clean
+    y_noisy = w @ x_noisy
+
+    # Sigmoid outputs for two slopes
+    y_sig10_clean = sigmoid(y_clean, k=10)
+    y_sig10_noisy = sigmoid(y_noisy, k=10)
+    y_sig20_clean = sigmoid(y_clean, k=20)
+    y_sig20_noisy = sigmoid(y_noisy, k=20)
+
+    print("Clean linear outputs:")
+    print(y_clean)
+    print("\nNoisy linear outputs:")
+    print(y_noisy)
+
+    # --------------------------------------------------------
+    # 4) Plot one figure per pattern (3 figures)
+    # --------------------------------------------------------
+    output_files = []
+    for p in range(3):
+        fig = plot_pattern_outputs(
+            pattern_idx=p,
+            y_target=y_target_all[:, p],
+            y_lin_clean=y_clean[:, p],
+            y_lin_noisy=y_noisy[:, p],
+            y_sig10_clean=y_sig10_clean[:, p],
+            y_sig10_noisy=y_sig10_noisy[:, p],
+            y_sig20_clean=y_sig20_clean[:, p],
+            y_sig20_noisy=y_sig20_noisy[:, p],
+        )
+        fname = f"associative_networks_fig_{p + 1:03d}_setA_pattern{p + 1}.png"
+        fig.savefig(FIG_DIR / fname, dpi=300, bbox_inches="tight")
+        plt.close(fig)
+        output_files.append(fname)
+
+    manifest_path = FIG_DIR / "associative_networks_setA_manifest.json"
+    manifest_path.write_text(json.dumps(output_files, indent=2), encoding="utf-8")
+
+    print("\nSaved figures:")
+    for f in output_files:
+        print(f"- {f}")
 
 
+if __name__ == "__main__":
+    main()
