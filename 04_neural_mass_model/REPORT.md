@@ -1,65 +1,184 @@
 # Neural Mass Model Report
 
 ## Overview
-This module simulates the Jansen-De Ridt neural mass model with three interacting populations:
+This module implements the **Jansen-Rit neural mass model**, a classical population-level model of cortical activity.
 
-- pyramidal population,
-- excitatory interneuron population,
-- inhibitory interneuron population.
+The simulation describes the interaction among three neuronal populations inside a cortical column:
 
-The goal is to generate an EEG-like output and analyze both its time-domain dynamics and frequency-domain behavior.
+- **pyramidal neurons**
+- **excitatory interneurons**
+- **inhibitory interneurons**
 
-## Model Setup
-The simulation uses:
+The objective is to generate an **EEG-like signal** and analyze it in both the **time domain** and the **frequency domain**.
 
-- connectivity terms `Wep`, `Wpe`, `Wip`, `Wpi`,
-- excitatory/inhibitory gains `Ae`, `Ai`,
-- synaptic rates `ae`, `ai`,
-- sigmoidal firing response with parameters `kr`, `v0`, `rmax`,
-- stochastic external drive (Gaussian white noise).
+---
 
-State variables are evolved with Euler integration at:
+## Background
+Unlike single-neuron spiking models, neural mass models represent the **average activity of neuronal populations** rather than the exact timing of individual spikes. This makes them useful for reproducing collective oscillatory activity observed in EEG.
 
-- `dt = 1e-4 s`
-- `tmax = 20 s`
+In the Jansen-Rit framework:
 
-## Output Signal
-The EEG-like signal is built as:
+- pyramidal neurons receive both **excitatory** and **inhibitory** feedback,
+- excitatory interneurons project back to pyramidal neurons,
+- inhibitory interneurons reduce pyramidal activity,
+- external input is modeled as **Gaussian white noise**, injected through excitatory dynamics.
 
-`eeg = Wpe * ye - Wpi * yi`
+With standard parameters, the model is often used to study alpha-like rhythms.
 
-An initial transient of 2 seconds is removed, then the steady-state signal is centered before spectral analysis.
+---
 
-## Spectral Analysis
-Power spectral density is estimated with Welch method:
+## Model Structure
+The model contains three interacting second-order synaptic subsystems:
 
-- sampling frequency: `fs = 1/dt`,
-- segment length: `4 s`,
-- overlap: `2 s`.
+- pyramidal population: `yp, zp`
+- excitatory interneurons: `ye, ze`
+- inhibitory interneurons: `yi, zi`
 
-Frequencies below 3 Hz are excluded for peak detection.
+Population firing rate is given by:
 
-From the latest run:
+```text
+S(v) = rmax / (1 + exp(-k * (v - v0)))
+```
+
+with:
+
+- `v0 = 6 mV`
+- `kr = 0.56 mV^-1`
+- `rmax = 5 s^-1`
+
+Synaptic couplings:
+
+- `Wep = 135`
+- `Wpe = 0.8 * Wep`
+- `Wip = 0.25 * Wep`
+- `Wpi = 0.25 * Wep`
+
+Gains and inverse time constants:
+
+- `Ae = 3.25 mV`
+- `Ai = 22 mV`
+- `ae = 100 s^-1`
+- `ai = 50 s^-1`
+
+---
+
+## Governing Equations
+### Pyramidal population
+```text
+dyp/dt = zp
+dzp/dt = Ae * ae * rp - 2 * ae * zp - ae^2 * yp
+vp = Wpe * ye - Wpi * yi
+rp = S(vp)
+```
+
+### Excitatory interneurons
+```text
+dye/dt = ze
+dze/dt = Ae * ae * (re + n / Wep) - 2 * ae * ze - ae^2 * ye
+ve = Wep * yp
+re = S(ve)
+```
+
+### Inhibitory interneurons
+```text
+dyi/dt = zi
+dzi/dt = Ai * ai * ri - 2 * ai * zi - ai^2 * yi
+vi = Wip * yp
+ri = S(vi)
+```
+
+EEG-like output:
+
+```text
+eeg = Wpe * ye - Wpi * yi
+```
+
+This represents the net excitatory-inhibitory contribution reaching pyramidal dynamics.
+
+---
+
+## Numerical Implementation
+The model is implemented with:
+
+- `NumPy` for numerical simulation,
+- `Matplotlib` for plotting,
+- `SciPy` (`welch`) for PSD estimation.
+
+Simulation settings:
+
+- integration method: **Euler**
+- time step: `dt = 1e-4 s`
+- total time: `20 s`
+- external input: Gaussian white noise
+  - mean = `160`
+  - standard deviation = `200`
+
+A fixed random seed is used for reproducibility.
+
+---
+
+## Signal Processing Pipeline
+After simulation:
+
+1. EEG-like signal is computed,
+2. initial transient is removed (`2 s`),
+3. steady-state signal is mean-centered,
+4. PSD is estimated with **Welch's method**.
+
+PSD settings:
+
+- sampling frequency: `fs = 1 / dt`
+- segment length: `4 s`
+- overlap: `2 s`
+
+Frequencies below `3 Hz` are excluded for peak detection and plotting focus.
+
+---
+
+## Results
+The updated code exports one figure with two panels:
+
+- EEG signal after transient (time domain),
+- power spectral density with dominant peak marker.
+
+![Neural Mass Model - Signal and PSD](figures/neural_mass_model_fig_001_signal_and_psd.png)
+
+Latest run summary:
 
 - `Wep = 135.0`
 - Peak frequency = `3.00 Hz`
 - Peak power = `1.4490e+00`
 
-## Result Figure
-The updated code now exports a single professional figure with two panels:
-
-1. EEG signal after transient (time domain),
-2. PSD with dominant peak marker.
-
-![Neural Mass Model - Signal and PSD](figures/neural_mass_model_fig_001_signal_and_psd.png)
+---
 
 ## Interpretation
-- The model produces structured oscillatory activity under noisy drive.
-- The PSD reveals a dominant low-frequency component for this parameter set.
-- The time and spectral views together provide a compact validation of model behavior.
+This simulation shows that rhythmic activity can emerge from excitatory-inhibitory population interactions under noisy drive.
+
+Key points:
+
+- oscillatory structure appears clearly in the time-domain signal,
+- PSD gives a compact summary of dominant rhythmic content,
+- resulting dominant frequency depends on parameter regime, preprocessing choices, and spectral settings.
+
+If a specific target band is desired, influential parameters include `Wep`, `ae`, and `ai`, as well as transient length and PSD configuration.
+
+---
+
+## Suggested Extensions
+- Sweep `Wep` and track dominant frequency transitions.
+- Sweep `ae`/`ai` to study time-constant effects on rhythm.
+- Compare parameter regimes for alpha-like vs beta-like activity.
+- Automate batch runs with peak extraction and summary tables.
+- Save all figures/metrics for each run into structured experiment folders.
+
+---
 
 ## Conclusion
-The neural mass simulation reproduces EEG-like dynamics and provides a clear workflow from state-space simulation to spectral characterization.
+The Jansen-Rit neural mass model provides a compact and physiologically meaningful description of cortical population dynamics.
+
+Using three interacting populations and noisy external input, it generates EEG-like output whose oscillatory content can be quantified with PSD analysis. This offers a practical framework for studying large-scale neural rhythms without simulating individual spikes.
+
+---
 
 ## Reproducibility
 Run:
@@ -67,8 +186,3 @@ Run:
 ```bash
 python 04_neural_mass_model/neural_mass_model.py
 ```
-
-Generated outputs:
-
-- `04_neural_mass_model/figures/neural_mass_model_fig_001_signal_and_psd.png`
-- `04_neural_mass_model/figures/neural_mass_model_manifest.json`
