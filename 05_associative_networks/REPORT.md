@@ -10,9 +10,9 @@
 ### Results
 Bar-plot comparisons for three input patterns:
 
-![Set A - Pattern 1](figures/exercise06_fig_001.png)
-![Set A - Pattern 2](figures/exercise06_fig_002.png)
-![Set A - Pattern 3](figures/exercise06_fig_003.png)
+![Set A - Pattern 1](figures/associative_networks_fig_001_setA_pattern1.png)
+![Set A - Pattern 2](figures/associative_networks_fig_002_setA_pattern2.png)
+![Set A - Pattern 3](figures/associative_networks_fig_003_setA_pattern3.png)
 
 ## Pattern Set B (Hetero-Associative Network, 16x4 with 4x4 bars)
 
@@ -25,10 +25,11 @@ Bar-plot comparisons for three input patterns:
 ### Results
 Pattern visualization, noisy inputs, and reconstructions:
 
-![Set B - Inputs](figures/exercise07_fig_001.png)
-![Set B - Noisy Inputs](figures/exercise07_fig_002.png)
-![Set B - Recon 1](figures/exercise07_fig_003.png)
-![Set B - Recon 2](figures/exercise07_fig_004.png)
-![Set B - Recon 3](figures/exercise07_fig_005.png)
-![Set B - Recon 4](figures/exercise07_fig_006.png)
+![Set B - Inputs](figures/associative_networks_fig_004_setB_inputs.png)
+![Set B - Noisy Inputs](figures/associative_networks_fig_005_setB_noisy_inputs.png)
+![Set B - Recon 1](figures/associative_networks_fig_006_setB_recon1.png)
+![Set B - Recon 2](figures/associative_networks_fig_007_setB_recon2.png)
+![Set B - Recon 3](figures/associative_networks_fig_008_setB_recon3.png)
+![Set B - Recon 4](figures/associative_networks_fig_009_setB_recon4.png)
+
 

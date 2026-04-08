@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
 # ============================================================
-# Exercises on supervised learning: Training deep neural networks
+# Supervised learning: training deep neural networks
 # Improved full version
 # ============================================================
 
@@ -485,3 +485,4 @@ if SAVE_FIGURES:
     manifest_path = FIG_DIR / "mnist_classification_manifest.json"
     manifest_path.write_text(json.dumps(FIGS_WRITTEN, indent=2), encoding="utf-8")
     print(f"Saved {len(FIGS_WRITTEN)} figures to: {FIG_DIR}")
+
