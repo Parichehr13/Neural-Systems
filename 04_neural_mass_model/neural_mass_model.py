@@ -1,118 +1,191 @@
-﻿ !/usr/bin/env python
-  coding: utf-8
-
-    Neural Mass Model
-  
-  Write a program to simulate the dynamics of three interacting populations (population of pyramidal neurons, excitatory interneurons and inhibitory interneurons) according to the model by Jansen and De Rit (1995). They used the following basic parameters of the model. 
-  
-  * Wep = 135
-  * Wpe = 0.8*Wep
-  * Wip = 0.25*Wep
-  * Wpi = 0.25*Wep
-  * ae = 3.25 mV
-  * ai = 22 mV
-  * 1/$\tau_e$ = 100s-1
-  * 1/$\tau_i$ = 50 s-1
-  
-  Use the following expression for the sigmoid: $S(v) = rmax/( 1 + exp(-k*(v â€“ v0))$, with:
-  * v0 = 6 mV
-  * k = 0.56 mV-1
-  * rmax = 5s-1
-  
-  Note that the model uses mV to indicate the variable leaving the synapse, since in the original work the output was defined as the post-synaptic potential.
-  Other recommended parameters: mean value of 160 and standard deviation as great as 200 for the white noise; integration step of 1/10000.
-  With the above parameters the model generates an alpha rhythm. Different rhythms can be obtained by varying the excitation time constant or the Wep parameter (and consequently the other synapses), e.g., Wep = 68, 108, 128, 270, 675, 1350.
-  
-  * Plot the EEG signal vs. time once the initial transient has expired.
-  * Compute the power spectral density of the EEG signal and plot it vs. frequency (to improve the figure, do not plot low frequencies below 2 or 3 Hz).
-
-  In[3]:
-
+#!/usr/bin/env python
+# coding: utf-8
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import welch
+from pathlib import Path
+import json
 
+# ============================================================
+# NEURAL MASS MODEL - JANSEN & DE RIT
+# ============================================================
 
-  In[4]:
+# -----------------------------
+# Parameters
+# -----------------------------
+Wep = 135.0
+Wpe = 0.8 * Wep
+Wip = 0.25 * Wep
+Wpi = 0.25 * Wep
 
+Ae = 3.25
+Ai = 22.0
 
-Wep = 135 
-  135: alpha; 68 alpha-beta;  %108; % 128; %135 alpha;  %270 theta;   %675  % 1350
-Wpe=0.8*Wep
-Wip=0.25*Wep
-Wpi=0.25*Wep
-Ae=3.25
-Ai=22  22;  %17.6;
-ae=100  50 75 150 200
-ai=50
-kr=0.56
-v0=6
-rmax=5
-dt=0.0001
-tmax=200
-t=np.arange(0, tmax+dt, dt)
-N=len(t)
-yp=np.zeros((N,))
-zp=np.zeros((N,))
-ye=np.zeros((N,))
-ze=np.zeros((N,))
-yi=np.zeros((N,))
-zi=np.zeros((N,))
+ae = 100.0
+ai = 50.0
 
-for k in np.arange(N-1):
-    n=200*np.random.randn(1,1)+160
+kr = 0.56
+v0 = 6.0
+rmax = 5.0
 
-    vp=Wpe*ye[k]-Wpi*yi[k]
-    ve=Wep*yp[k]
-    vi=Wip*yp[k]
-    rp=rmax/(1+np.exp(-kr*(vp-v0)))
-    re=rmax/(1+np.exp(-kr*(ve-v0)))
-    ri=rmax/(1+np.exp(-kr*(vi-v0)))
+dt = 1e-4
+tmax = 20.0
+t = np.arange(0, tmax + dt, dt)
+N = len(t)
+
+# reproducible white noise
+rng = np.random.default_rng(42)
+noise = rng.normal(loc=160.0, scale=200.0, size=N - 1)
+
+PROJECT_DIR = Path(__file__).resolve().parent
+FIG_DIR = PROJECT_DIR / "figures"
+FIG_DIR.mkdir(parents=True, exist_ok=True)
+MANIFEST = []
+
+# -----------------------------
+# State variables
+# -----------------------------
+yp = np.zeros(N)
+zp = np.zeros(N)
+
+ye = np.zeros(N)
+ze = np.zeros(N)
+
+yi = np.zeros(N)
+zi = np.zeros(N)
+
+# -----------------------------
+# Simulation
+# -----------------------------
+for k in range(N - 1):
+    n = noise[k]
+
+    vp = Wpe * ye[k] - Wpi * yi[k]
+    ve = Wep * yp[k]
+    vi = Wip * yp[k]
+
+    rp = rmax / (1 + np.exp(-kr * (vp - v0)))
+    re = rmax / (1 + np.exp(-kr * (ve - v0)))
+    ri = rmax / (1 + np.exp(-kr * (vi - v0)))
+
     dyp = zp[k]
-    dzp = Ae*ae*rp-2*ae*zp[k]-ae*ae*yp[k]
+    dzp = Ae * ae * rp - 2 * ae * zp[k] - (ae ** 2) * yp[k]
+
     dye = ze[k]
-    dze = Ae*ae*(re+n/Wpe)-2*ae*ze[k]-ae*ae*ye[k]
+    dze = Ae * ae * (re + n / Wep) - 2 * ae * ze[k] - (ae ** 2) * ye[k]
+
     dyi = zi[k]
-    dzi = Ai*ai*ri-2*ai*zi[k]-ai*ai*yi[k]
-    yp[k+1]=yp[k]+dyp*dt
-    zp[k+1]=zp[k]+dzp*dt
-    ye[k+1]=ye[k]+dye*dt
-    ze[k+1]=ze[k]+dze*dt
-    yi[k+1]=yi[k]+dyi*dt
-    zi[k+1]=zi[k]+dzi*dt
+    dzi = Ai * ai * ri - 2 * ai * zi[k] - (ai ** 2) * yi[k]
 
+    yp[k + 1] = yp[k] + dyp * dt
+    zp[k + 1] = zp[k] + dzp * dt
 
-  In[5]:
+    ye[k + 1] = ye[k] + dye * dt
+    ze[k + 1] = ze[k] + dze * dt
 
+    yi[k + 1] = yi[k] + dyi * dt
+    zi[k + 1] = zi[k] + dzi * dt
 
-eeg = Wpe*ye-Wpi*yi
-[f, Peeg] = welch(eeg, fs=1/dt, nperseg=20000, noverlap=10000) 
+# -----------------------------
+# EEG-like signal
+# -----------------------------
+eeg = Wpe * ye - Wpi * yi
 
+# remove transient
+transient = 2.0
+start_idx = int(transient / dt)
 
-  In[7]:
+t_ss = t[start_idx:]
+eeg_ss = eeg[start_idx:]
 
+# center signal for prettier plot and cleaner PSD
+eeg_ss_centered = eeg_ss - np.mean(eeg_ss)
 
-start = int(1.01/dt)
-stop= int(3/dt)
+# -----------------------------
+# PSD
+# -----------------------------
+fs = 1 / dt
+f, Peeg = welch(
+    eeg_ss_centered,
+    fs=fs,
+    nperseg=int(4 * fs),
+    noverlap=int(2 * fs)
+)
 
-plt.figure(figsize=(11,8))
-plt.plot(t[start:stop],eeg[start:stop],'k')
-plt.ylabel('EEG amplitude')
-plt.xlabel('time (s)')
+# ignore very low frequencies
+mask = f >= 3.0
+
+# dominant peak
+peak_freq = f[mask][np.argmax(Peeg[mask])]
+peak_power = Peeg[mask][np.argmax(Peeg[mask])]
+
+# -----------------------------
+# Better looking plots
+# -----------------------------
+
+# select a nice time window after transient
+plot_start = 1.0   # seconds after steady-state begins
+plot_duration = 2.0
+
+i1 = int(plot_start / dt)
+i2 = int((plot_start + plot_duration) / dt)
+
+fig, ax = plt.subplots(2, 1, figsize=(12, 8), constrained_layout=True)
+
+# EEG plot
+ax[0].plot(
+    t_ss[i1:i2],
+    eeg_ss_centered[i1:i2],
+    color='black',
+    linewidth=1.2
+)
+ax[0].set_title('EEG signal after transient', fontsize=14, fontweight='bold')
+ax[0].set_xlabel('Time (s)', fontsize=11)
+ax[0].set_ylabel('EEG amplitude', fontsize=11)
+ax[0].grid(True, alpha=0.3)
+ax[0].spines['top'].set_visible(False)
+ax[0].spines['right'].set_visible(False)
+
+# PSD plot
+ax[1].plot(
+    f[mask],
+    Peeg[mask],
+    color='black',
+    linewidth=1.4
+)
+ax[1].axvline(
+    peak_freq,
+    color='gray',
+    linestyle='--',
+    linewidth=1.2,
+    label=f'Peak = {peak_freq:.2f} Hz'
+)
+ax[1].set_title('Power spectral density', fontsize=14, fontweight='bold')
+ax[1].set_xlabel('Frequency (Hz)', fontsize=11)
+ax[1].set_ylabel('PSD', fontsize=11)
+ax[1].set_xlim(3, 40)
+ax[1].grid(True, alpha=0.3)
+ax[1].legend(frameon=False)
+ax[1].spines['top'].set_visible(False)
+ax[1].spines['right'].set_visible(False)
+
+fig_name = "neural_mass_model_fig_001_signal_and_psd.png"
+fig.savefig(FIG_DIR / fig_name, dpi=300, bbox_inches="tight")
+MANIFEST.append(fig_name)
+
 plt.show()
 
-plt.figure(figsize=(11,8))
-plt.plot(f[5:80],Peeg[5:80],'k')
-plt.ylabel('PSD')
-plt.xlabel('frequency (Hz)')
-plt.show()
+# -----------------------------
+# Final info
+# -----------------------------
+print('==============================')
+print('Neural Mass Model')
+print('==============================')
+print(f'Wep = {Wep}')
+print(f'Peak frequency = {peak_freq:.2f} Hz')
+print(f'Peak power = {peak_power:.4e}')
+print('==============================')
 
-
-  In[ ]:
-
-
-
-
-
-
+manifest_path = FIG_DIR / "neural_mass_model_manifest.json"
+manifest_path.write_text(json.dumps(MANIFEST, indent=2), encoding="utf-8")
