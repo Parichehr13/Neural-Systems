@@ -1,0 +1,6 @@
+[
+  "figures\\single_neuron\\single_neuron_dynamics.png",
+  "figures\\single_neuron\\single_neuron_fi_curve.png",
+  "results\\metrics\\single_neuron_fi_curve.csv",
+  "results\\metrics\\single_neuron_summary.csv"
+]

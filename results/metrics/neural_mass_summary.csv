@@ -1,0 +1,7 @@
+section,metric,value
+neural_mass,base_peak_frequency_hz,3.0
+neural_mass,base_peak_power,1.4490141129082077
+neural_mass,base_rms_amplitude,2.5020350881740567
+neural_mass,max_peak_power_in_sweep,16.83776385434248
+neural_mass,coupling_ep_at_max_peak_power,160.0
+neural_mass,peak_frequency_at_max_peak_power_hz,3.5

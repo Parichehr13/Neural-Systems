@@ -1,0 +1,6 @@
+section,metric,value
+adaptation,steady_rate_without_adaptation_at_4na_hz,44.44444444444444
+adaptation,steady_rate_with_adaptation_at_4na_hz,10.954902318787656
+adaptation,steady_rate_reduction_at_4na_hz,33.48954212565678
+adaptation,adaptation_index_at_4na,2.6374501992031854
+adaptation,max_adaptation_state_at_4na,0.4760287143483486

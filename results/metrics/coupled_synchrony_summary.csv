@@ -1,0 +1,8 @@
+section,metric,value
+coupled,base_rate_1_hz,50.0
+coupled,base_rate_2_hz,60.0
+coupled,base_coincidence_fraction,0.2857142857142857
+coupled,base_mean_signed_lag_ms,0.48142857142857004
+coupled,base_membrane_correlation,0.032171254113808265
+coupled,max_coincidence_fraction_in_sweep,0.5714285714285714
+coupled,strength_ratio_at_max_coincidence,3.0
