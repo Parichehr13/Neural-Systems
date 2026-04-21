@@ -42,7 +42,7 @@ All values below are generated from the current code in `results/metrics/project
 
 ## Representative Figures
 
-These figures are the most useful for quickly understanding the project and discussing it in interviews.
+These figures are the most useful for quickly understanding the project.
 
 <p align="center">
   <img src="figures/single_neuron/single_neuron_fi_curve.png" width="48%" alt="Single-neuron current-frequency curve" />
