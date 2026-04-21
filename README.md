@@ -1,6 +1,6 @@
 # Modeling Neural Dynamics from Single-Neuron Spiking to Population-Level EEG-like Activity
 
-This repository is a reproducible computational neuroscience project that studies neural dynamics across scales using reduced models of increasing complexity. The main workflow follows a progression from single-neuron excitability, to spike-frequency adaptation, to coupled-neuron synchrony, and finally to population-level EEG-like oscillations in a neural mass model.
+This repository is a reproducible computational neuroscience project that studies how simple dynamical models scale from single-neuron spike generation to population-level EEG-like activity. Rather than presenting isolated class exercises, it unifies four reduced models into one analysis pipeline that quantifies excitability, adaptation, synchrony, and spectral structure with rerunnable experiments and saved outputs.
 
 The project refactors four original course modules into one coherent analysis pipeline:
 
@@ -8,6 +8,13 @@ The project refactors four original course modules into one coherent analysis pi
 - adaptive spiking dynamics with refractory threshold and slow conductance adaptation
 - synchrony and leader-lag structure in a coupled two-neuron circuit
 - spectral analysis of EEG-like activity in a Jansen-Rit neural mass model
+
+## Project At A Glance
+
+- **Scale progression:** single-neuron excitability -> spike-frequency adaptation -> coupled-neuron synchrony -> neural-mass oscillations
+- **Implementation:** reusable Python package in `src/neural_dynamics/` with command-line experiments in `experiments/`
+- **Outputs:** automatically generated figures plus CSV summaries in `results/metrics/`
+- **Use case:** portfolio project for computational neuroscience, neural modeling, and reproducible scientific programming
 
 ## Scientific Motivation
 
@@ -26,25 +33,30 @@ The answer is developed in four steps:
 
 All values below are generated from the current code in `results/metrics/project_summary.csv`.
 
-| Analysis | Computed result | Source |
+| Analysis | Computed result | Why it matters |
 | --- | --- | --- |
-| Single-neuron excitability | Fixed-threshold rheobase: `2.0 nA`; dynamic-threshold rheobase: `1.5 nA` | `results/metrics/single_neuron_summary.csv` |
-| Threshold dynamics | At `4.0 nA`, fixed-threshold steady rate: `70.67 Hz`; dynamic-threshold steady rate: `53.48 Hz` | `results/metrics/single_neuron_summary.csv` |
-| Adaptation | At `4.0 nA`, adaptation lowers steady-state rate from `44.44 Hz` to `10.95 Hz` | `results/metrics/adaptation_summary.csv` |
-| Adaptation strength | Adaptation index at `4.0 nA`: `2.64`; max adaptation state: `0.476` | `results/metrics/adaptation_summary.csv` |
-| Coupled synchrony | Base coincidence fraction: `0.286`; strongest sweep value: `0.571` at synapse strength ratio `3.0` | `results/metrics/coupled_synchrony_summary.csv` |
-| Coupled timing | Base signed nearest-spike lag: `0.481 ms`; membrane correlation: `0.032` | `results/metrics/coupled_synchrony_summary.csv` |
-| Neural mass spectrum | Base dominant frequency: `3.0 Hz`; base peak power: `1.449` | `results/metrics/neural_mass_summary.csv` |
-| Neural mass sensitivity | Peak power rises to `16.838` at `Wep = 160.0`, with dominant frequency `3.5 Hz` | `results/metrics/neural_mass_summary.csv` |
+| Single-neuron excitability | Fixed-threshold rheobase: `2.0 nA`; dynamic-threshold rheobase: `1.5 nA` | Shows how threshold dynamics shift spike onset and effective excitability. |
+| Threshold and adaptation effects | At `4.0 nA`, dynamic threshold lowers steady-state rate by `17.20 Hz` (`24.3%`), while slow adaptation lowers it by `33.49 Hz` (`75.4%`) | Quantifies two distinct mechanisms that reduce sustained firing under constant drive. |
+| Coupled-neuron synchrony | Coincidence fraction increases from `0.286` to `0.571` as excitatory coupling is strengthened to ratio `3.0` | Demonstrates that even a two-neuron motif can show measurable synchrony sensitivity to synaptic parameters. |
+| Neural-mass oscillations | Base PSD peak: `3.0 Hz`; peak power rises from `1.449` to `16.838` at `Wep = 160.0` | Connects population coupling changes to EEG-like rhythmic structure in the frequency domain. |
 
-## Example Figures
+## Representative Figures
 
-The experiment pipeline saves all figures automatically under `figures/`.
+These figures are the most useful for quickly understanding the project and discussing it in interviews.
 
-- Single-neuron dynamics and f-I curve: [figures/single_neuron](figures/single_neuron)
-- Adaptation dynamics and adapted f-I curve: [figures/adaptation](figures/adaptation)
-- Coupled-neuron dynamics and synchrony sweep: [figures/coupled](figures/coupled)
-- Neural-mass signal, PSD, and parameter sweep: [figures/neural_mass](figures/neural_mass)
+<p align="center">
+  <img src="figures/single_neuron/single_neuron_fi_curve.png" width="48%" alt="Single-neuron current-frequency curve" />
+  <img src="figures/adaptation/adaptation_dynamics.png" width="48%" alt="Adaptive neuron dynamics" />
+</p>
+<p align="center">
+  <img src="figures/coupled/coupled_neuron_dynamics.png" width="48%" alt="Coupled-neuron dynamics" />
+  <img src="figures/neural_mass/neural_mass_signal_psd.png" width="48%" alt="Neural-mass EEG-like signal and PSD" />
+</p>
+
+- **Single-neuron f-I curve:** highlights the current-to-rate transformation and the effect of dynamic thresholding.
+- **Adaptation dynamics:** makes the mechanism of spike-frequency adaptation visible in voltage, threshold, and adaptation state.
+- **Coupled-neuron dynamics:** shows how asymmetric coupling shapes timing, spike trains, and synaptic state variables.
+- **Neural-mass signal and PSD:** links time-domain EEG-like activity to a measurable dominant oscillation frequency.
 
 ## Repository Structure
 

@@ -136,6 +136,11 @@ def run_experiment() -> dict[str, object]:
     summary["steady_rate_difference_at_4na_hz"] = (
         summary["fixed_steady_rate_at_4na_hz"] - summary["dynamic_steady_rate_at_4na_hz"]
     )
+    summary["steady_rate_difference_at_4na_percent"] = (
+        100.0
+        * summary["steady_rate_difference_at_4na_hz"]
+        / summary["fixed_steady_rate_at_4na_hz"]
+    )
 
     fi_csv = metrics_path("single_neuron_fi_curve.csv")
     write_rows_csv(fi_csv, fi_rows)

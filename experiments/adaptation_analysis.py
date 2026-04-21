@@ -105,6 +105,11 @@ def run_experiment() -> dict[str, object]:
         "adaptation_index_at_4na": with_adaptation["adaptation_index"],
         "max_adaptation_state_at_4na": with_adaptation["max_adaptation_state"],
     }
+    summary["steady_rate_reduction_at_4na_percent"] = (
+        100.0
+        * summary["steady_rate_reduction_at_4na_hz"]
+        / summary["steady_rate_without_adaptation_at_4na_hz"]
+    )
 
     fi_csv = metrics_path("adaptation_fi_curve.csv")
     write_rows_csv(fi_csv, fi_rows)

@@ -119,6 +119,11 @@ def run_experiment() -> dict[str, object]:
         "max_coincidence_fraction_in_sweep": best_sync["coincidence_fraction"],
         "strength_ratio_at_max_coincidence": best_sync["synapse_12_strength_ratio"],
     }
+    summary["coincidence_fraction_gain_ratio"] = (
+        summary["max_coincidence_fraction_in_sweep"] / summary["base_coincidence_fraction"]
+        if summary["base_coincidence_fraction"] > 0.0
+        else float("nan")
+    )
 
     sweep_csv = metrics_path("coupled_synchrony_metrics.csv")
     write_rows_csv(sweep_csv, sweep_rows)

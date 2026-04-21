@@ -4,3 +4,4 @@ single_neuron,dynamic_rheobase_current_na,1.5
 single_neuron,fixed_steady_rate_at_4na_hz,70.67137809187277
 single_neuron,dynamic_steady_rate_at_4na_hz,53.475935828876985
 single_neuron,steady_rate_difference_at_4na_hz,17.195442262995783
+single_neuron,steady_rate_difference_at_4na_percent,24.33155080213904
